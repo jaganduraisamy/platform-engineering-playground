@@ -5,10 +5,12 @@ This folder contains Kubernetes-focused experiments for this repository.
 ## Current Experiment
 
 - `kind-cluster/`: local 3-node kind cluster setup (1 control-plane + 2 workers)
+- `kodekloud-voting-app/`: multi-language demo app with UI, Redis, and PostgreSQL
 
 Use the detailed guide in:
 
 - [kind-cluster/README.md](kind-cluster/README.md)
+- [kodekloud-voting-app/README.md](kodekloud-voting-app/README.md)
 
 ## Notes
 
