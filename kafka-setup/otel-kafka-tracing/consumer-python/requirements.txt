@@ -1,0 +1,5 @@
+setuptools>=65.0
+kafka-python==2.2.15
+opentelemetry-distro==0.48b0
+opentelemetry-exporter-otlp==1.27.0
+opentelemetry-instrumentation-kafka-python==0.48b0

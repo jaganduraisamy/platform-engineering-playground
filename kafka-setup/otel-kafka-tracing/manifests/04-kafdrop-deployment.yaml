@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafdrop
+  namespace: otel-kafka-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafdrop
+  template:
+    metadata:
+      labels:
+        app: kafdrop
+    spec:
+      containers:
+        - name: kafdrop
+          image: obsidiandynamics/kafdrop:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9000
+          env:
+            - name: KAFKA_BROKERCONNECT
+              value: kafka-service:9092
+            - name: SERVER_SERVLET_CONTEXTPATH
+              value: "/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafdrop
+  namespace: otel-kafka-poc
+spec:
+  selector:
+    app: kafdrop
+  type: NodePort
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+      nodePort: 30009
