@@ -170,6 +170,12 @@ data:
       - job_name: prometheus
         static_configs:
           - targets: ['localhost:9090']
+      - job_name: otel-collector
+        static_configs:
+          - targets: ['otel-gateway-collector.observability.svc.cluster.local:9464']
+      - job_name: kube-state-metrics
+        static_configs:
+          - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
       - job_name: kubernetes-pods-demo-voting
         kubernetes_sd_configs:
           - role: pod
@@ -295,6 +301,191 @@ data:
             filterByTraceID: true
             filterBySpanID: true
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: observability
+data:
+  dashboardproviders.yaml: |
+    apiVersion: 1
+    providers:
+      - name: kubernetes
+        orgId: 1
+        folder: Kubernetes
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: observability
+data:
+  kubernetes-cluster-overview.json: |
+    {
+      "id": null,
+      "uid": "k8s-cluster-overview",
+      "title": "Kubernetes Cluster Overview",
+      "tags": ["kubernetes", "cluster"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Nodes",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "count(kube_node_info)"
+            }
+          ],
+          "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
+          "options": {
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Nodes Not Ready",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"false\"})"
+            }
+          ],
+          "gridPos": {"h": 5, "w": 6, "x": 6, "y": 0},
+          "options": {
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Running Pods",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(kube_pod_status_phase{phase=\"Running\"})"
+            }
+          ],
+          "gridPos": {"h": 5, "w": 6, "x": 12, "y": 0},
+          "options": {
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Namespaces",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "count(kube_namespace_created)"
+            }
+          ],
+          "gridPos": {"h": 5, "w": 6, "x": 18, "y": 0},
+          "options": {
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "colorMode": "value",
+            "graphMode": "none"
+          }
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Deployments Desired vs Available",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(kube_deployment_spec_replicas)",
+              "legendFormat": "desired"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(kube_deployment_status_replicas_available)",
+              "legendFormat": "available"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5}
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Pods by Phase",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (phase) (kube_pod_status_phase)",
+              "legendFormat": "{{phase}}"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5}
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "DaemonSet Ready vs Desired",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(kube_daemonset_status_desired_number_scheduled)",
+              "legendFormat": "desired"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(kube_daemonset_status_number_ready)",
+              "legendFormat": "ready"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 13}
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "StatefulSet Ready vs Desired",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(kube_statefulset_replicas)",
+              "legendFormat": "desired"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(kube_statefulset_status_replicas_ready)",
+              "legendFormat": "ready"
+            }
+          ],
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 13}
+        }
+      ]
+    }
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -325,10 +516,20 @@ spec:
           volumeMounts:
             - name: grafana-datasources
               mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboard-providers
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
       volumes:
         - name: grafana-datasources
           configMap:
             name: grafana-datasources
+        - name: grafana-dashboard-providers
+          configMap:
+            name: grafana-dashboard-providers
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service
@@ -387,13 +588,26 @@ data:
       - url: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
     scrape_configs:
       - job_name: kubernetes-pods
+        pipeline_stages:
+          - cri: {}
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
-          - source_labels: [__meta_kubernetes_pod_node_name]
-            target_label: __host__
-          - action: labelmap
-            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_pod_controller_name]
+            regex: ([0-9a-z-.]+?)(-[0-9a-f]{8,10})?
+            target_label: __tmp_controller_name
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name, __meta_kubernetes_pod_label_app, __tmp_controller_name, __meta_kubernetes_pod_name]
+            regex: ^;*([^;]+)(;.*)?$
+            target_label: app
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance, __meta_kubernetes_pod_label_instance]
+            regex: ^;*([^;]+)(;.*)?$
+            target_label: instance
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component, __meta_kubernetes_pod_label_component]
+            regex: ^;*([^;]+)(;.*)?$
+            target_label: component
+          - action: replace
+            source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node_name
           - action: replace
             source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
@@ -406,6 +620,11 @@ data:
           - replacement: /var/log/pods/*$1/*.log
             separator: /
             source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+          - replacement: /var/log/pods/*$1/*.log
+            separator: /
+            source_labels: [__meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash, __meta_kubernetes_pod_annotation_kubernetes_io_config_hash, __meta_kubernetes_pod_container_name]
+            regex: true/(.*)
             target_label: __path__
 ---
 apiVersion: apps/v1
@@ -428,6 +647,11 @@ spec:
           image: grafana/promtail:3.1.1
           args:
             - -config.file=/etc/promtail/promtail.yaml
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - name: config
               mountPath: /etc/promtail
