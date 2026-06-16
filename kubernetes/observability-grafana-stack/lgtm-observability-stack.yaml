@@ -298,6 +298,11 @@ data:
             datasourceUid: Loki
             spanStartTimeShift: -5m
             spanEndTimeShift: 5m
+      - name: Pyroscope
+        type: grafana-pyroscope-datasource
+        uid: pyroscope
+        access: proxy
+        url: http://pyroscope.observability.svc.cluster.local:4040
             filterByTraceID: true
             filterBySpanID: true
 ---
@@ -503,7 +508,7 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana:11.1.4
+          image: grafana/grafana:11.6.0
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
@@ -511,6 +516,19 @@ spec:
               value: admin
             - name: GF_PATHS_PROVISIONING
               value: /etc/grafana/provisioning
+            # Auto-install LLM app plugin and Pyroscope datasource plugin at startup
+            - name: GF_PLUGINS_PREINSTALL
+              value: grafana-llm-app,grafana-pyroscope-app
+            # LLM plugin: use local Ollama as the LLM backend (no cloud token required)
+            # To use OpenAI instead, set GF_PLUGIN_GRAFANA_LLM_APP_SETTINGS_OPENAI_API_KEY
+            - name: GF_PLUGIN_GRAFANA_LLM_APP_SETTINGS_VECTOR_ENABLED
+              value: "false"
+            - name: GF_PLUGIN_GRAFANA_LLM_APP_SETTINGS_OPENAI_PROVIDER
+              value: custom
+            - name: GF_PLUGIN_GRAFANA_LLM_APP_SETTINGS_OPENAI_URL
+              value: http://ollama.observability.svc.cluster.local:11434/v1
+            - name: GF_PLUGIN_GRAFANA_LLM_APP_SETTINGS_OPENAI_MODEL
+              value: llama3.2:latest
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -543,6 +561,128 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
+# =============================================================================
+# Pyroscope – continuous profiling backend (single-binary mode)
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyroscope
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pyroscope
+  template:
+    metadata:
+      labels:
+        app: pyroscope
+    spec:
+      containers:
+        - name: pyroscope
+          image: grafana/pyroscope:2.0.0
+          args:
+            - -config.file=/etc/pyroscope/pyroscope.yaml
+          ports:
+            - name: http
+              containerPort: 4040
+          volumeMounts:
+            - name: pyroscope-config
+              mountPath: /etc/pyroscope
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: pyroscope-config
+          configMap:
+            name: pyroscope-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pyroscope-config
+  namespace: observability
+data:
+  pyroscope.yaml: |
+    server:
+      http_listen_port: 4040
+    storage:
+      backend: filesystem
+      filesystem:
+        dir: /tmp/pyroscope
+    self_profiling:
+      disable_push: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyroscope
+  namespace: observability
+spec:
+  selector:
+    app: pyroscope
+  ports:
+    - name: http
+      port: 4040
+      targetPort: 4040
+# =============================================================================
+# Ollama – local LLM backend for Grafana AI assistant (no cloud API key needed)
+# Pull a model after deploy: kubectl exec -n observability deploy/ollama -- ollama pull llama3.2
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:0.6.8
+          ports:
+            - name: http
+              containerPort: 11434
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 6Gi
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+      volumes:
+        - name: ollama-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: observability
+spec:
+  selector:
+    app: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
 ---
 apiVersion: v1
 kind: ServiceAccount
