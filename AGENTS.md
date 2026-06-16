@@ -6,6 +6,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 - Read [README.md](README.md) first for scope and tool landscape.
 - Prioritize hands-on workflows that can be run locally with minimal assumptions.
 - Treat this repo as an experimentation lab: suggest safe iteration paths and rollback steps.
+- For `kafka-setup/otel-kafka-tracing` on Kind, prefer a dedicated external local registry container mapped to `localhost:5001` and referenced directly in manifests. Do not default to `kind load` or an in-cluster NodePort registry for app image delivery unless explicitly debugging.
 
 ## Working Style For AI Agents
 - Be concise and action-oriented. Propose concrete files, commands, and verification steps.

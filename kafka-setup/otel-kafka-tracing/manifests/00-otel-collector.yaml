@@ -17,6 +17,10 @@ data:
       batch:
 
     exporters:
+      otlp/tempo:
+        endpoint: tempo.observability.svc.cluster.local:4317
+        tls:
+          insecure: true
       logging:
         loglevel: info
 
@@ -25,7 +29,7 @@ data:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [logging]
+          exporters: [logging, otlp/tempo]
 ---
 apiVersion: apps/v1
 kind: Deployment

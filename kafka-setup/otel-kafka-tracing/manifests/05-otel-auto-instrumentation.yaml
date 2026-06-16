@@ -1,0 +1,32 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: otel-kafka-auto
+  namespace: otel-kafka-poc
+spec:
+  exporter:
+    endpoint: http://otel-collector.otel-kafka-poc.svc.cluster.local:4317
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1"
+  java:
+    image: otel/autoinstrumentation-java:2.28.1
+    env:
+      - name: OTEL_SERVICE_NAME
+        value: producer-service
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: grpc
+  python:
+    image: otel/autoinstrumentation-python:0.63b1
+    env:
+      - name: OTEL_SERVICE_NAME
+        value: consumer-service
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: http/protobuf
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector.otel-kafka-poc.svc.cluster.local:4318
+      - name: OTEL_TRACES_EXPORTER
+        value: otlp

@@ -12,20 +12,14 @@ spec:
     metadata:
       labels:
         app: kafka-producer
+      annotations:
+        instrumentation.opentelemetry.io/inject-java: "otel-kafka-auto"
     spec:
       containers:
         - name: producer
-          image: 127.0.0.1:30501/otel-kafka-producer:latest
-          imagePullPolicy: IfNotPresent
+          image: localhost:5001/otel-kafka-producer:latest
+          imagePullPolicy: Always
           env:
-            - name: OTEL_SERVICE_NAME
-              value: producer-service
-            - name: OTEL_TRACES_EXPORTER
-              value: otlp
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: http://otel-collector:4317
-            - name: OTEL_EXPORTER_OTLP_PROTOCOL
-              value: grpc
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: kafka-service:9092
             - name: KAFKA_TOPIC
