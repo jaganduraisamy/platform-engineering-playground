@@ -6,12 +6,14 @@ This folder contains Kubernetes-focused experiments for this repository.
 
 - `kind-cluster/`: local 3-node kind cluster setup (1 control-plane + 2 workers)
 - `kodekloud-voting-app/`: multi-language demo app with UI, Redis, and PostgreSQL
+- `networking/`: networking study track for services, ingress, Gateway API, `HTTPRoute`, and policy
 - `observability-grafana-stack/`: simple PoC stack for metrics, logs, and traces
 
 Use the detailed guide in:
 
 - [kind-cluster/README.md](kind-cluster/README.md)
 - [kodekloud-voting-app/README.md](kodekloud-voting-app/README.md)
+- [networking/README.md](networking/README.md)
 - [observability-grafana-stack/README.md](observability-grafana-stack/README.md)
 
 ## Notes
