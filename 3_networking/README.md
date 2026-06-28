@@ -1,12 +1,14 @@
-# Kubernetes Networking Roadmap
+# Step 3: Kubernetes Networking Roadmap
 
-This area should become the networking track for the Kubernetes part of the sandbox.
+This area is the networking track for the platform sandbox.
 
 From a platform engineering perspective, the goal is not just exposing an app. The goal is to understand how traffic enters the cluster, how it is routed, how it is secured, how teams consume shared networking primitives, and how you troubleshoot failures.
 
 ## Start Here
 
-The first concrete experiment in this track is [kubernetes/networking/ingress-nginx/README.md](kubernetes/networking/ingress-nginx/README.md).
+The first concrete experiment in this track is [ingress-nginx/README.md](ingress-nginx/README.md).
+
+Prerequisites: cluster from [../1_kind-cluster/](../1_kind-cluster/) and demo app from [../2_kodekloud-voting-app/](../2_kodekloud-voting-app/).
 
 It places `ingress-nginx` in front of the existing demo voting app running in kind so you can move from `port-forward` access to a shared HTTP entry point.
 

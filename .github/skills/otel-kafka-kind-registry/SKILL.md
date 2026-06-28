@@ -1,6 +1,6 @@
 ---
 name: otel-kafka-kind-registry
-description: "Use when working on kafka-setup/otel-kafka-tracing image delivery, CI/CD, GitOps, Kind registry setup, image pull errors, or deployment manifests. This project uses a dedicated local registry container exposed as localhost:5001 and referenced directly in pod specs. Do not default to kind load or the in-cluster NodePort registry for producer/consumer images unless explicitly debugging."
+description: "Use when working on 6_kafka-otel-tracing image delivery, CI/CD, GitOps, Kind registry setup, image pull errors, or deployment manifests. This project uses a dedicated local registry container exposed as localhost:5001 and referenced directly in pod specs. Do not default to kind load or the in-cluster NodePort registry for producer/consumer images unless explicitly debugging."
 ---
 
 # OTel Kafka Kind Registry Workflow
@@ -12,7 +12,7 @@ This project uses the Kind local registry pattern for producer and consumer imag
 - Registry host for manifests: `localhost:5001`
 - Registry container name: `kind-registry`
 - Cluster name: `home-k8-cluster`
-- Setup script: `kafka-setup/otel-kafka-tracing/scripts/setup-kind-registry.sh`
+- Setup script: `6_kafka-otel-tracing/scripts/setup-kind-registry.sh`
 
 ## Required Workflow
 

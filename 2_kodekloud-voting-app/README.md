@@ -1,4 +1,4 @@
-# KodeKloud-Style Demo: Example Voting App on kind
+# Step 2: KodeKloud-Style Demo Voting App
 
 This experiment deploys the open-source Example Voting App (widely used in KodeKloud labs).
 
@@ -22,7 +22,7 @@ Services used in this deployment:
 
 ## Prerequisites
 
-- Existing kind cluster from `kubernetes/kind-cluster`
+- Cluster from [../1_kind-cluster/README.md](../1_kind-cluster/README.md) (step 1)
 - `kubectl` configured to your kind context
 
 Verify context:
@@ -67,10 +67,14 @@ Open:
 2. Open result UI and confirm counts update.
 3. Repeat with other option to verify end-to-end processing.
 
-## Clean Up
+## Next Step
+
+Expose the app via ingress: [../3_networking/ingress-nginx/README.md](../3_networking/ingress-nginx/README.md)
+
+## Cleanup
 
 ```bash
-kubectl delete -f deployment.yaml
+./uninstall-app.sh
 ```
 
 ## Notes

@@ -20,6 +20,8 @@ spec:
           image: localhost:5001/otel-kafka-consumer:latest
           imagePullPolicy: Always
           env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: kafka-service:9092
             - name: KAFKA_TOPIC

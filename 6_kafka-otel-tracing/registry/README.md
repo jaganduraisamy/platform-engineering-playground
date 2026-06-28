@@ -37,7 +37,7 @@ colima start
 In another terminal:
 
 ```sh
-cd <repo-root>/kafka-setup/otel-kafka-tracing
+cd 6_kafka-otel-tracing
 
 # Tag images for the registry
 docker tag otel-kafka-producer:local 127.0.0.1:30501/otel-kafka-producer:latest
@@ -66,7 +66,7 @@ Expected output from curl:
 Now the producer and consumer can pull from the in-cluster registry:
 
 ```sh
-cd <repo-root>/kafka-setup/otel-kafka-tracing
+cd 6_kafka-otel-tracing
 
 kubectl apply -f manifests/02-producer-deployment.yaml -n otel-kafka-poc
 kubectl apply -f manifests/03-consumer-deployment.yaml -n otel-kafka-poc

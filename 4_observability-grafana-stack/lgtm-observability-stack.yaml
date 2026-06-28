@@ -298,13 +298,13 @@ data:
             datasourceUid: Loki
             spanStartTimeShift: -5m
             spanEndTimeShift: 5m
+            filterByTraceID: true
+            filterBySpanID: true
       - name: Pyroscope
         type: grafana-pyroscope-datasource
         uid: pyroscope
         access: proxy
         url: http://pyroscope.observability.svc.cluster.local:4040
-            filterByTraceID: true
-            filterBySpanID: true
 ---
 apiVersion: v1
 kind: ConfigMap

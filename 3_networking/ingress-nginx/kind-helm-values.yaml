@@ -1,0 +1,31 @@
+# Kind ingress-nginx Helm values for this sandbox.
+# Upstream reference:
+# https://github.com/kubernetes/ingress-nginx/blob/main/hack/manifest-templates/provider/kind/values.yaml
+#
+# Added nodeSelector ingress-ready=true for multi-node Kind clusters:
+# host ports 80/443 are mapped on the control-plane only (see 1_kind-cluster/kind-config.yaml).
+
+controller:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  hostPort:
+    enabled: true
+  terminationGracePeriodSeconds: 0
+  nodeSelector:
+    ingress-ready: "true"
+  service:
+    type: LoadBalancer
+  watchIngressWithoutClass: true
+  publishService:
+    enabled: false
+  extraArgs:
+    publish-status-address: localhost
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      operator: Equal
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Equal
+      effect: NoSchedule

@@ -6,7 +6,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 - Read [README.md](README.md) first for scope and tool landscape.
 - Prioritize hands-on workflows that can be run locally with minimal assumptions.
 - Treat this repo as an experimentation lab: suggest safe iteration paths and rollback steps.
-- For `kafka-setup/otel-kafka-tracing` on Kind, prefer a dedicated external local registry container mapped to `localhost:5001` and referenced directly in manifests. Do not default to `kind load` or an in-cluster NodePort registry for app image delivery unless explicitly debugging.
+- For `6_kafka-otel-tracing` on Kind, prefer a dedicated external local registry container mapped to `localhost:5001` and referenced directly in manifests. Do not default to `kind load` or an in-cluster NodePort registry for app image delivery unless explicitly debugging.
 
 ## Working Style For AI Agents
 - Be concise and action-oriented. Propose concrete files, commands, and verification steps.
@@ -15,11 +15,10 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 - When introducing a tool, include minimal "start", "validate", and "cleanup" commands.
 
 ## Conventions To Follow
-- Keep content organized by capability area when created:
+- Numbered experiment folders at repo root (`1_*` … `N_*`) for the hands-on lab flow on Kind.
+- Future capability areas as they grow:
   - `terraform/` for IaC experiments
-  - `kubernetes/` for manifests, Helm, Kustomize
   - `gitops/` for ArgoCD and delivery patterns
-  - `observability/` for metrics, logs, traces, dashboards, SLOs
   - `security/` for Vault, sealed-secrets, RBAC and policy
   - `docs/` for runbooks and architecture notes
 - Use one folder per experiment with a local README describing goal, prerequisites, and test steps.
