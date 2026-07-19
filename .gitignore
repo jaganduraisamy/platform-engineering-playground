@@ -13,3 +13,8 @@ docs/interview-notes/
 .DS_Store
 .idea/
 *.swp
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc

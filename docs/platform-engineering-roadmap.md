@@ -23,7 +23,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Kind, kubectl | Covered — `1_kind-cluster/` | — |
 | Multi-service app (Deployments, Services, namespaces) | Covered — `2_kodekloud-voting-app/` | — |
 | Helm for platform addons | Covered — Ingress (step 3), OTel Operator (step 5) | — |
-| Kustomize overlays | Planned | With GitOps track |
+| Kustomize overlays | Covered — [`7_kustomize-webapp/`](../7_kustomize-webapp/) (env config, same image) | — |
 | Requests/limits, probes | Apply on new manifests | Existing + new labs |
 
 ### 2. Networking & traffic
@@ -59,10 +59,10 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
 | Git as source of truth | Covered — this repo | — |
-| Local image registry workflow | Covered — `localhost:5001` in step 6 | — |
-| **GitHub Actions** — CI: build, publish to GHCR | Covered — [`.github/`](../.github/) | — |
-| Build once, deploy many + **approval gates** (dev → stage → prod) | Partial — sha tags from CI; gates with Argo later | `.github/` + `gitops/` |
-| **ArgoCD** — declarative sync, app-of-apps, drift detection | Planned — pin GHCR `sha-*` tags from CI | `gitops/` |
+| Local image registry workflow | Covered — `localhost:5001` in step 6; Kind `load` in step 7 | — |
+| **GitHub Actions** — CI: build, publish to GHCR | Partial — Kafka workflow present; welcome-webapp CI next | [`8_github-actions/`](../8_github-actions/) |
+| Build once, deploy many + **approval gates** | Partial — Kustomize envs ready; GHA Environments next | steps 7–8 + `gitops/` |
+| **ArgoCD** — declarative sync | Planned — pin GHCR `sha-*` into step 7 overlays | `gitops/` |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
 ### 5. Platform APIs & self-service
@@ -127,14 +127,15 @@ Done (Kind lab spine)
 4. 4_observability-grafana-stack/ → LGTM
 5. 5_otel-instrumentation/        → OTel auto-instrumentation
 6. 6_kafka-otel-tracing/          → async + distributed tracing
+7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
+8. 8_github-actions/              → GitHub Actions CI → GHCR (workflow in .github/)
 
 Next capability areas
-7.  .github/                      → GitHub Actions CI (build → GHCR sha tags)
-8.  gitops/                       → ArgoCD GitOps (deploy those tags; no rebuild)
-9.  security/                     → RBAC, policy, secrets
-10. observability/                → Thanos + Elasticsearch (optional scale-out)
-11. idp/                          → Backstage (minimal)
-12. terraform/                    → IaC foundations
+9.  gitops/                       → ArgoCD GitOps (deploy sha tags into overlays)
+10. security/                     → RBAC, policy, secrets
+11. observability/                → Thanos + Elasticsearch (optional scale-out)
+12. idp/                          → Backstage (minimal)
+13. terraform/                    → IaC foundations
 ```
 
 ---

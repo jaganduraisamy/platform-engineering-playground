@@ -18,8 +18,8 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 ## Conventions To Follow
 - Numbered experiment folders at repo root (`1_*` … `N_*`) for the hands-on lab flow on Kind.
 - Future capability areas as they grow:
-  - `.github/` for GitHub Actions CI (GHCR artifacts for GitOps)
-  - `gitops/` for ArgoCD (consumes CI image tags)
+  - Numbered labs `1_*` … `N_*` for the Kind / delivery experiment spine (`7_kustomize-webapp/`, `8_github-actions/`; GHA workflow YAML stays under `.github/workflows/`)
+  - `gitops/` for ArgoCD (consumes CI image tags + Kustomize overlays)
   - `security/` for Vault, sealed-secrets, RBAC and policy
   - `observability/` for Thanos / Elasticsearch scale-out
   - `idp/` for Backstage / developer portals

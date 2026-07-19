@@ -34,11 +34,13 @@ Traces: http://grafana.localhost/ → **Explore** → **Tempo** (look for `produ
 | Path | Registry | How |
 | :--- | :--- | :--- |
 | **Local Kind** | `localhost:5001` | `./deploy-kafka.sh` (build + push + apply) |
-| **CI (GitHub Actions)** | `ghcr.io/<owner>/otel-kafka-*` | [`.github/workflows/ci-kafka-images.yml`](../.github/workflows/ci-kafka-images.yml) — build/push only |
+| **CI (GitHub Actions)** | `ghcr.io/<owner>/otel-kafka-*` | Step [../8_github-actions/](../8_github-actions/) — workflow in `.github/workflows/` |
 
 CI tags `sha-<gitsha>` (and `latest` on `main`). Those tags are what a later **ArgoCD** lab will pin — not `kubectl` from the workflow.
 
-Details: [`.github/README.md`](../.github/README.md)
+## Next step
+
+[../7_kustomize-webapp/](../7_kustomize-webapp/) — Kustomize welcome webapp (env overlays), then [../8_github-actions/](../8_github-actions/) for CI
 
 ## Cleanup
 

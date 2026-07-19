@@ -16,7 +16,8 @@ Everything runs on the same Kind cluster. Folders are numbered in suggested orde
 | **4** | [4_observability-grafana-stack/](4_observability-grafana-stack/) | `./deploy-observability.sh` | `./uninstall-observability.sh` |
 | **5** | [5_otel-instrumentation/](5_otel-instrumentation/) | `./deploy-otel.sh` | `./uninstall-otel.sh` |
 | **6** | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) | `./deploy-kafka.sh` | `./uninstall-kafka.sh` |
-| **7** | [.github/](.github/) | GHA builds → GHCR (no cluster deploy) | — |
+| **7** | [7_kustomize-webapp/](7_kustomize-webapp/) | `./deploy-webapp.sh dev` | `./uninstall-webapp.sh` |
+| **8** | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
 
 ## Quick Start
 
@@ -27,12 +28,15 @@ cd ../3_networking/ingress-nginx && ./deploy-ingress.sh
 cd ../../4_observability-grafana-stack && ./deploy-observability.sh
 cd ../5_otel-instrumentation && ./deploy-otel.sh
 cd ../6_kafka-otel-tracing && ./deploy-kafka.sh
+cd ../7_kustomize-webapp && ./deploy-webapp.sh dev
+cd ../8_github-actions && ./validate-ci-local.sh
 ```
 
 ## Teardown (reverse order)
 
 ```bash
-cd 6_kafka-otel-tracing && ./uninstall-kafka.sh
+cd 7_kustomize-webapp && ./uninstall-webapp.sh
+cd ../6_kafka-otel-tracing && ./uninstall-kafka.sh
 cd ../5_otel-instrumentation && ./uninstall-otel.sh
 cd ../4_observability-grafana-stack && ./uninstall-observability.sh
 cd ../3_networking/ingress-nginx && ./uninstall-ingress.sh
@@ -40,7 +44,7 @@ cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
 cd ../1_kind-cluster && ./uninstall-cluster.sh
 ```
 
-Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 7), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
+Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 8 + overlays from step 7), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
 
 ---
 
@@ -50,11 +54,11 @@ Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 7), 
 
 | Category | Tools |
 | :--- | :--- |
-| **Orchestration** | Kubernetes, Kind, Helm, kubectl |
+| **Orchestration** | Kubernetes, Kind, Helm, kubectl, Kustomize |
 | **Networking** | Ingress NGINX, Services / CoreDNS |
 | **Observability** | Prometheus, Grafana, Loki, Tempo, Promtail, OpenTelemetry |
 | **Messaging** | Kafka (KRaft) |
-| **Images** | Local registry (`localhost:5001`); CI → GHCR |
-| **CI** | GitHub Actions ([.github/](.github/)) |
+| **Images** | Local Kind load / `localhost:5001` (step 6); CI → GHCR (step 8) |
+| **CI** | GitHub Actions ([8_github-actions/](8_github-actions/), workflow under `.github/`) |
 
 **On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): ArgoCD, Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: welcome-dev
+
+resources:
+  - ../../base
+  - namespace.yaml
+
+patches:
+  - path: env-patch.yaml
+
+images:
+  - name: welcome-webapp
+    newName: welcome-webapp
+    newTag: local

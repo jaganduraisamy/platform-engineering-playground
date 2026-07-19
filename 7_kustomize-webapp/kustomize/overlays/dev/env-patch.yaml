@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: welcome-webapp
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: web
+          env:
+            - name: ENV_NAME
+              value: dev
+            - name: BG_COLOR
+              value: "#dc2626"
+            - name: GREETING
+              value: "Hello from DEV"
+            - name: IMAGE_TAG
+              value: local

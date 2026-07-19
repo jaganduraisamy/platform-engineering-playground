@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: welcome-webapp
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: web
+          env:
+            - name: ENV_NAME
+              value: uat
+            - name: BG_COLOR
+              value: "#2563eb"
+            - name: GREETING
+              value: "Hello from UAT"
+            - name: IMAGE_TAG
+              value: local
