@@ -1,6 +1,9 @@
 # Graphify knowledge graph output (generated locally)
 graphify-out/
 
+# Local-only notes (not for public remote)
+docs/cnpa-syllabus-alignment.md
+
 # Java / Maven build output
 **/target/
 *.class

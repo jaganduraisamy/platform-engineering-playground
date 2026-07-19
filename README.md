@@ -2,9 +2,7 @@
 
 Hands-on lab for platform engineering: build, break, fix, and document modern cloud-native patterns on a local Kind cluster.
 
-Study roadmap (PE hands-on path): [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md)
-
-CNPA syllabus ↔ tools in this repo: [docs/cnpa-syllabus-alignment.md](docs/cnpa-syllabus-alignment.md)
+Study roadmap: [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md)
 
 ## Lab Flow
 

@@ -1,8 +1,6 @@
 # Platform Engineering Roadmap
 
-Hands-on skill path for this sandbox — what a platform engineer practices with real tools, documented so you can share experiments with interviewers and remote hiring managers.
-
-**CNPA exam mapping** (syllabus ↔ tools in this repo) lives in [cnpa-syllabus-alignment.md](cnpa-syllabus-alignment.md). This roadmap is the **PE hands-on path**, not an exam outline clone.
+Hands-on skill path for this sandbox — platform engineering capabilities practiced with concrete tools and reproducible labs.
 
 Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with start / validate / cleanup, pin versions.
 
@@ -10,7 +8,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 
 - Treat numbered folders `1_*` … `6_*` as the completed Kind lab spine — do not renumber them for certifications.
 - Pick the next **capability track** below; add a folder when you start (`gitops/`, `security/`, etc.).
-- After each experiment, note what broke and how you fixed it (interview gold).
+- After each experiment, note what broke and how you fixed it.
 
 ---
 
@@ -79,7 +77,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 
 ### 6. Security & conformance
 
-**Why it matters:** Guardrails without blocking delivery; interviewers ask about blast radius and policy.
+**Why it matters:** Guardrails without blocking delivery; clear blast radius and policy enforcement.
 
 | Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
@@ -119,7 +117,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 
 ---
 
-## Suggested study order in this repo
+## Suggested order in this repo
 
 ```text
 Done (Kind lab spine)
@@ -130,7 +128,7 @@ Done (Kind lab spine)
 5. 5_otel-instrumentation/        → OTel auto-instrumentation
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 
-Next (portfolio / PE capabilities)
+Next capability areas
 7.  gitops/                       → ArgoCD GitOps
 8.  .github/                      → GitHub Actions (build once, multi-env + approval)
 9.  security/                     → RBAC, policy, secrets

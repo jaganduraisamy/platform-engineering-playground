@@ -6,7 +6,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 - Read [README.md](README.md) first for scope and tool landscape.
 - Prioritize hands-on workflows that can be run locally with minimal assumptions.
 - Treat this repo as an experimentation lab: suggest safe iteration paths and rollback steps.
-- Hands-on PE skill path: [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md). CNPA exam ↔ tools mapping is separate: [docs/cnpa-syllabus-alignment.md](docs/cnpa-syllabus-alignment.md) — do not restructure lab folders for the exam.
+- Hands-on capability path: [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md). Keep numbered lab folders stable.
 - For `6_kafka-otel-tracing` on Kind, prefer a dedicated external local registry container mapped to `localhost:5001` and referenced directly in manifests. Do not default to `kind load` or an in-cluster NodePort registry for app image delivery unless explicitly debugging.
 
 ## Working Style For AI Agents
@@ -24,7 +24,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
   - `observability/` for Thanos / Elasticsearch scale-out
   - `idp/` for Backstage / developer portals
   - `terraform/` for IaC experiments
-  - `docs/` for runbooks, roadmap, and CNPA alignment notes
+  - `docs/` for runbooks, roadmap, and competency coverage notes
 - Use one folder per experiment with a local README describing goal, prerequisites, and test steps.
 - Pin versions where possible to reduce drift in reproducibility.
 
