@@ -3,6 +3,7 @@ graphify-out/
 
 # Local-only notes (not for public remote)
 docs/cnpa-syllabus-alignment.md
+docs/interview-notes/
 
 # Java / Maven build output
 **/target/
