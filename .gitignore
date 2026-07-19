@@ -1,0 +1,11 @@
+# Graphify knowledge graph output (generated locally)
+graphify-out/
+
+# Java / Maven build output
+**/target/
+*.class
+
+# OS / editor noise
+.DS_Store
+.idea/
+*.swp

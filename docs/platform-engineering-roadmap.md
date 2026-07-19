@@ -1,105 +1,147 @@
 # Platform Engineering Roadmap
 
-A practical study map for this sandbox, aligned with [AGENTS.md](../AGENTS.md). Focus on hands-on workflows you can run locally, document, break, and fix.
+Hands-on skill path for this sandbox — what a platform engineer practices with real tools, documented so you can share experiments with interviewers and remote hiring managers.
+
+**CNPA exam mapping** (syllabus ↔ tools in this repo) lives in [cnpa-syllabus-alignment.md](cnpa-syllabus-alignment.md). This roadmap is the **PE hands-on path**, not an exam outline clone.
+
+Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with start / validate / cleanup, pin versions.
 
 ## How To Use This List
 
-- Pick one capability area at a time.
-- One folder per experiment, with README covering goal, prerequisites, validate, cleanup.
-- Pin versions where possible.
-- After each experiment, note what broke and how you fixed it.
+- Treat numbered folders `1_*` … `6_*` as the completed Kind lab spine — do not renumber them for certifications.
+- Pick the next **capability track** below; add a folder when you start (`gitops/`, `security/`, etc.).
+- After each experiment, note what broke and how you fixed it (interview gold).
 
-## Core Capability Areas
+---
 
-### 1. Kubernetes & Runtime (in progress)
+## Capability tracks
 
-| Tool / technique | Why it matters | Sandbox status |
+### 1. Runtime & workload foundation
+
+**Why it matters for PE roles:** You own the shared Kubernetes fabric application teams run on.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **kind** — local multi-node clusters | Fast feedback loop for manifests and controllers | `1_kind-cluster/` |
-| **kubectl** — deploy, debug, rollout | Day-to-day platform operator skill | Used everywhere |
-| **Helm** — packaged releases | Standard way teams consume platform addons | Ingress NGINX (step 3), OTel operator (step 5) |
-| **Kustomize** — overlay-based config | GitOps-friendly manifest composition | Planned |
-| **Resource requests/limits** | Scheduling fairness and noisy-neighbor control | Apply in new manifests |
-| **Probes (liveness/readiness)** | Safe rollouts and traffic eligibility | Apply in new manifests |
-| **RBAC** | Least-privilege access for humans and automation | `security/` (planned) |
-| **Namespaces & labels** | Multi-tenant boundaries and selector contracts | Demo app uses `demo-voting-app` |
+| Kind, kubectl | Covered — `1_kind-cluster/` | — |
+| Multi-service app (Deployments, Services, namespaces) | Covered — `2_kodekloud-voting-app/` | — |
+| Helm for platform addons | Covered — Ingress (step 3), OTel Operator (step 5) | — |
+| Kustomize overlays | Planned | With GitOps track |
+| Requests/limits, probes | Apply on new manifests | Existing + new labs |
 
-### 2. Networking & Traffic
+### 2. Networking & traffic
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** North-south entry, east-west isolation, and TLS are platform contracts.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Services & CoreDNS** | Foundation for all routing | `3_networking/` roadmap |
-| **Ingress NGINX** | Widely deployed north-south HTTP entry | `3_networking/ingress-nginx/` |
-| **Gateway API** (`Gateway`, `HTTPRoute`) | Cleaner multi-tenant edge model | Planned in networking track |
-| **NetworkPolicy** | East-west isolation baseline | Planned |
-| **cert-manager** | Automated TLS lifecycle | Planned |
-| **Istio / service mesh mTLS** | Identity and encryption between services | Planned |
-| **Egress control** | Outbound dependency governance | Planned |
+| Ingress NGINX | Covered — `3_networking/ingress-nginx/` | — |
+| Services & CoreDNS | Covered (via demo app) | — |
+| NetworkPolicy | Planned | `3_networking/` or `security/` |
+| Gateway API | Planned | `3_networking/` |
+| cert-manager | Planned | `3_networking/` or `security/` |
+| Service mesh mTLS (Istio / Linkerd) | Planned (optional depth) | Later |
 
-### 3. Delivery & GitOps
+### 3. Observability
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** Platforms must expose golden signals and support 2 AM troubleshooting across metrics, logs, and traces.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Git as source of truth** | Auditable, reversible platform changes | This repo |
-| **ArgoCD** — declarative sync | Continuous reconciliation to cluster desired state | `gitops/` (planned) |
-| **GitHub Actions** — CI pipelines | Build, test, scan before deploy | `.github/` (expand) |
-| **Image registry workflow** | Repeatable artifact promotion | `6_kafka-otel-tracing/` uses `localhost:5001` |
-| **Progressive delivery** — canary, weighted routes | Safer rollouts via Gateway API / mesh | Future networking experiments |
+| Prometheus, Grafana, Loki, Tempo, Promtail | Covered — `4_observability-grafana-stack/` | — |
+| OpenTelemetry Operator + auto-instrumentation | Covered — `5_otel-instrumentation/` | — |
+| Kafka + trace context propagation | Covered — `6_kafka-otel-tracing/` | — |
+| Alerting examples / SLOs | Partial — add examples | Extend step 4 or `observability/` |
+| **Thanos** — Prometheus HA + long-term metrics on object storage | Planned | `observability/` |
+| **Elasticsearch** — logs/docs, index templates, ILM / mappings | Planned | `observability/` |
 
-### 4. Infrastructure as Code
+### 4. Delivery & GitOps
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** Safe, auditable path from commit to cluster; build once, promote many.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Terraform / OpenTofu** | Declarative cloud and cluster foundations | `terraform/` (planned) |
-| **State management** | Know blast radius of every apply | Document per experiment |
-| **Modules & environments** | Reuse without copy-paste drift | Planned |
-| **Drift detection** | Catch manual console changes | Planned |
+| Git as source of truth | Covered — this repo | — |
+| Local image registry workflow | Covered — `localhost:5001` in step 6 | — |
+| **GitHub Actions** — CI: build, test, scan, publish | Planned | `.github/` |
+| Build once, deploy many + **approval gates** (dev → stage → prod) | Planned | `.github/` + `gitops/` |
+| **ArgoCD** — declarative sync, app-of-apps, drift detection | Planned | `gitops/` |
+| Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
-### 5. Observability
+### 5. Platform APIs & self-service
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** Platforms expose APIs (often CRDs) so teams self-serve without tickets.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Golden signals** — latency, traffic, errors, saturation | Minimum viable service health view | Step 4 stack |
-| **Prometheus** — metrics | Alerting and capacity signals | `4_observability-grafana-stack/` |
-| **Grafana** — dashboards & Explore | Shared operational visibility | Same |
-| **Loki** — log aggregation | Correlate logs with metrics/traces | Same |
-| **Tempo** — distributed tracing | End-to-end request flow | Same + kafka OTel POC |
-| **OpenTelemetry** — instrumentation & collectors | Vendor-neutral telemetry pipeline | Step 5 + `6_kafka-otel-tracing/` |
-| **SLOs & error budgets** | Reliability contracts with product teams | `observability/` (planned) |
-| **Alerting examples** | Actionable pages, not noise | Add to observability experiments |
+| Operators + CRDs (consume) | Partial — OTel Operator / Instrumentation CR | — |
+| Custom CRDs or Crossplane compositions (light) | Planned | `platform-apis/` or under `gitops/` |
+| Reconciliation loop literacy | Partial — observe controllers in Kind | Docs + labs |
 
-### 6. Security & Secrets
+### 6. Security & conformance
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** Guardrails without blocking delivery; interviewers ask about blast radius and policy.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Sealed Secrets** | Encrypted secrets safe in Git | `security/` (planned) |
-| **HashiCorp Vault** | Dynamic credentials and secret rotation | Planned |
-| **Policy as code** — OPA/Gatekeeper, Kyverno | Enforce standards at admission time | Planned |
-| **Image scanning** — Trivy, Grype | Catch CVEs before deploy | Add to CI track |
-| **No plaintext secrets in Git** | Non-negotiable guardrail | Enforced in AGENTS.md |
+| No plaintext secrets in Git | Covered — AGENTS.md | — |
+| RBAC least privilege | Planned | `security/` |
+| NetworkPolicy baselines | Planned | `security/` / networking |
+| Policy-as-code (Kyverno or OPA/Gatekeeper) | Planned | `security/` |
+| Sealed Secrets / Vault basics | Planned | `security/` |
+| Image scanning in CI (Trivy / Grype) | Planned | With GitHub Actions |
 
-### 7. Messaging & Async (advanced)
+### 7. IDP & developer experience
 
-| Tool / technique | Why it matters | Sandbox status |
+**Why it matters:** Adoption is the product metric; portals and catalogs reduce cognitive load.
+
+| Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
-| **Kafka (KRaft)** | Event-driven platform patterns | `6_kafka-otel-tracing/` |
-| **Trace context over message headers** | Observability across async boundaries | Same POC |
+| Golden-path docs / scripts | Partial — per-step READMEs | Keep improving |
+| **Backstage** (minimal portal / catalog) | Planned | `idp/` |
+| Service templates / scaffolder | Planned | With Backstage |
 
-## Suggested Study Order In This Repo
+### 8. Platform measurement
+
+**Why it matters:** Prove the platform improves delivery (DORA) and efficiency, not just “more YAML.”
+
+| Tools | Sandbox status | Suggested folder |
+| :--- | :--- | :--- |
+| Golden signals in Grafana | Covered — step 4 | — |
+| DORA-style metrics / platform adoption notes | Planned | Docs + optional Grafana dashboard |
+| SLOs & error budgets | Planned | `observability/` |
+
+### Infrastructure as Code (supporting track)
+
+| Tools | Sandbox status | Suggested folder |
+| :--- | :--- | :--- |
+| Terraform / OpenTofu | Planned | `terraform/` |
+| State, modules, drift awareness | Planned | Document per experiment |
+
+---
+
+## Suggested study order in this repo
 
 ```text
-1. 1_kind-cluster/                  → cluster foundation
-2. 2_kodekloud-voting-app/          → realistic multi-service workload
-3. 3_networking/                    → expose and secure traffic
-4. 4_observability-grafana-stack/   → LGTM stack (metrics, logs, traces)
-5. 5_otel-instrumentation/          → OTel operator + app auto-instrumentation
-6. 6_kafka-otel-tracing/            → async messaging + distributed tracing
-7. gitops/                          → delivery automation
-8. terraform/                       → cloud/cluster provisioning
-9. security/                        → secrets, RBAC, policy
+Done (Kind lab spine)
+1. 1_kind-cluster/                → runtime foundation
+2. 2_kodekloud-voting-app/        → multi-service workload
+3. 3_networking/ingress-nginx/    → north-south traffic
+4. 4_observability-grafana-stack/ → LGTM
+5. 5_otel-instrumentation/        → OTel auto-instrumentation
+6. 6_kafka-otel-tracing/          → async + distributed tracing
+
+Next (portfolio / PE capabilities)
+7.  gitops/                       → ArgoCD GitOps
+8.  .github/                      → GitHub Actions (build once, multi-env + approval)
+9.  security/                     → RBAC, policy, secrets
+10. observability/                → Thanos + Elasticsearch (optional scale-out)
+11. idp/                          → Backstage (minimal)
+12. terraform/                    → IaC foundations
 ```
 
-## Platform Engineering Mindset (evaluate every experiment)
+---
+
+## Platform engineering mindset (evaluate every experiment)
 
 - What is the **contract** for application teams?
 - What is **centralized** (platform-owned) vs **delegated** (team-owned)?
@@ -109,7 +151,7 @@ A practical study map for this sandbox, aligned with [AGENTS.md](../AGENTS.md). 
 - What is **portable** across clusters and cloud vendors?
 - What **breaks during upgrades** — controller swaps, CRD changes, mesh rollouts?
 
-## Quality Bar For New Experiments
+## Quality bar for new experiments
 
 From AGENTS.md — each addition should aim for:
 

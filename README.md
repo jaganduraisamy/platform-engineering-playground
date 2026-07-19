@@ -2,7 +2,9 @@
 
 Hands-on lab for platform engineering: build, break, fix, and document modern cloud-native patterns on a local Kind cluster.
 
-Study roadmap: [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md)
+Study roadmap (PE hands-on path): [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md)
+
+CNPA syllabus ↔ tools in this repo: [docs/cnpa-syllabus-alignment.md](docs/cnpa-syllabus-alignment.md)
 
 ## Lab Flow
 
@@ -39,7 +41,7 @@ cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
 cd ../1_kind-cluster && ./uninstall-cluster.sh
 ```
 
-Future capability areas (not yet populated): `terraform/`, `gitops/`, `security/`.
+Future capability areas (not yet populated): `gitops/` (ArgoCD), `.github/` (GitHub Actions CI), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
 
 ---
 
