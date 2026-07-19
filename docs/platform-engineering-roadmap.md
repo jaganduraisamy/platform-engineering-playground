@@ -60,8 +60,8 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | :--- | :--- | :--- |
 | Git as source of truth | Covered — this repo | — |
 | Local image registry workflow | Covered — `localhost:5001` in step 6; Kind `load` in step 7 | — |
-| **GitHub Actions** — CI: build, publish to GHCR | Partial — Kafka workflow present; welcome-webapp CI next | [`8_github-actions/`](../8_github-actions/) |
-| Build once, deploy many + **approval gates** | Partial — Kustomize envs ready; GHA Environments next | steps 7–8 + `gitops/` |
+| **GitHub Actions** — CI: build, publish to GHCR | Covered (base) — welcome-webapp → GHCR `sha-*` | [`8_github-actions/`](../8_github-actions/) |
+| Build once, deploy many + **approval gates** | Partial — overlays ready; promote/approvals next | steps 7–8 + `gitops/` |
 | **ArgoCD** — declarative sync | Planned — pin GHCR `sha-*` into step 7 overlays | `gitops/` |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 

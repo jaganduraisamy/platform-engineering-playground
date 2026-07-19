@@ -1,53 +1,49 @@
-# Step 8: GitHub Actions CI
+# Step 8: GitHub Actions CI (welcome webapp)
 
-CI for platform demos: build images on **GitHub-hosted runners**, publish to **GHCR**.
+Build the step 7 welcome app **once** and push to **GHCR**.  
+Kustomize overlays (`dev` / `uat` / `prod`) deploy that same image into different namespaces — CI does not rebuild per env.
 
-Primary app for CD demos (build once / promote / approvals): the welcome webapp from [../7_kustomize-webapp/](../7_kustomize-webapp/).  
-Optional: Kafka images from step 6 (heavy service build).
-
-Workflow YAML must live under [`.github/workflows/`](../.github/workflows/) — GitHub only loads Actions from there. This folder is the experiment entrypoint.
+Workflow YAML lives under [`.github/workflows/`](../.github/workflows/) (required by GitHub). This folder is the experiment entrypoint.
 
 ## Prerequisites
 
-- Step 7 app: [../7_kustomize-webapp/app/](../7_kustomize-webapp/app/)
-- (Optional) Kafka Dockerfiles: [../6_kafka-otel-tracing/](../6_kafka-otel-tracing/)
+- [../7_kustomize-webapp/app/](../7_kustomize-webapp/app/)
 
 ```bash
 ls ../7_kustomize-webapp/app/Dockerfile
-ls ../.github/workflows/
+ls ../.github/workflows/ci-welcome-webapp.yml
 ```
 
 ## Registry
 
-Use **GHCR** (`ghcr.io/<owner>/…`). Do not use `localhost:5001` for CI — GitHub runners cannot reach your laptop registry. Kind pulls GHCR for CD demos (public package = simplest).
+**GHCR** (`ghcr.io/<owner>/welcome-webapp`). Not `localhost:5001` (unreachable from GitHub runners).
 
-## Layout
-
-| Path | Role |
-| :--- | :--- |
-| This folder | Experiment README + local validate |
-| [../.github/workflows/](../.github/workflows/) | Workflow files |
-| [../7_kustomize-webapp/](../7_kustomize-webapp/) | App + Kustomize overlays (env config) |
-
-## 1. Validate webapp build locally
+## 1. Validate locally
 
 ```bash
 chmod +x validate-ci-local.sh
 ./validate-ci-local.sh
 ```
 
-## 2. Workflows (on GitHub when you push)
+## 2. Base CI job (implemented)
 
-| Workflow | Status |
+| Workflow | What it does |
 | :--- | :--- |
-| `ci-kafka-images.yml` | Present — Kafka producer/consumer → GHCR |
-| `ci-welcome-webapp.yml` | Next — welcome app → GHCR `sha-*` (add when ready) |
-| promote / Environments | Next — same digest → uat/prod with approvals |
+| [ci-welcome-webapp.yml](../.github/workflows/ci-welcome-webapp.yml) | Build + push `welcome-webapp:sha-<7chars>` (and `latest` on `main`) |
 
-## Next step
+Triggers: changes under `7_kustomize-webapp/app/**`, or **Actions → Run workflow**.
 
-[../gitops/](../gitops/) — ArgoCD pins GHCR `sha-*` into the Kustomize overlays from step 7.
+### Validate on GitHub
+
+1. Run `ci-welcome-webapp` (workflow_dispatch or push a path-touching commit).
+2. Packages: `ghcr.io/<owner>/welcome-webapp:sha-xxxxxxx`
+
+## Next (not in this base job)
+
+- Promote same digest into Kind via overlays / ArgoCD
+- GitHub Environments + approvals (uat/prod)
+- Tag-based / trunk-based promotion flows
 
 ## Cleanup
 
-No cluster uninstall for CI. Delete unused GHCR packages from GitHub if needed.
+No cluster uninstall. Delete unused GHCR packages from the GitHub UI if needed.

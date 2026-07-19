@@ -1,22 +1,19 @@
-# Build and publish Kafka OTel images (CI)
-#
-# Produces immutable tags for later GitOps/CD (ArgoCD will pin these digests/tags).
-# Does NOT deploy to Kind — local deploy stays: 6_kafka-otel-tracing/deploy-kafka.sh
+# Build and publish welcome-webapp once (CI).
+# Same image is promoted across Kustomize envs (dev/uat/prod) later — do not rebuild per env.
+# Does NOT deploy to Kind.
 
-name: ci-kafka-images
+name: ci-welcome-webapp
 
 on:
   push:
     branches: [main, "lab/**"]
     paths:
-      - "6_kafka-otel-tracing/producer-java/**"
-      - "6_kafka-otel-tracing/consumer-python/**"
-      - ".github/workflows/ci-kafka-images.yml"
+      - "7_kustomize-webapp/app/**"
+      - ".github/workflows/ci-welcome-webapp.yml"
   pull_request:
     paths:
-      - "6_kafka-otel-tracing/producer-java/**"
-      - "6_kafka-otel-tracing/consumer-python/**"
-      - ".github/workflows/ci-kafka-images.yml"
+      - "7_kustomize-webapp/app/**"
+      - ".github/workflows/ci-welcome-webapp.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,21 +22,11 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: welcome-webapp
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: producer
-            context: 6_kafka-otel-tracing/producer-java
-            image_suffix: otel-kafka-producer
-          - name: consumer
-            context: 6_kafka-otel-tracing/consumer-python
-            image_suffix: otel-kafka-consumer
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +35,7 @@ jobs:
         id: meta
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          echo "image=${{ env.REGISTRY }}/${owner}/${{ matrix.image_suffix }}" >> "$GITHUB_OUTPUT"
+          echo "image=${{ env.REGISTRY }}/${owner}/${{ env.IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
           echo "sha_tag=sha-$(echo '${{ github.sha }}' | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -70,13 +57,23 @@ jobs:
           tags: |
             type=raw,value=${{ steps.meta.outputs.sha_tag }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          labels: |
+            org.opencontainers.image.title=welcome-webapp
+            org.opencontainers.image.description=Platform demo welcome page (env via Kustomize)
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.context }}
+          context: 7_kustomize-webapp/app
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Summary
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "### welcome-webapp published" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image: \`${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.sha_tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Promote this **same** tag across Kustomize overlays (dev/uat/prod) — do not rebuild per env." >> "$GITHUB_STEP_SUMMARY"
