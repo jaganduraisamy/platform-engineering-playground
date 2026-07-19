@@ -43,14 +43,16 @@ Future capability areas (not yet populated): `gitops/` (ArgoCD), `.github/` (Git
 
 ---
 
-## Tech Stack & Ecosystem
+## Tech Stack
 
-| Category | Tools Explored |
+**In this repo (runnable labs)**
+
+| Category | Tools |
 | :--- | :--- |
-| **Orchestration & Compute** | Kubernetes (K8s), Kind, Helm |
+| **Orchestration** | Kubernetes, Kind, Helm, kubectl |
+| **Networking** | Ingress NGINX, Services / CoreDNS |
+| **Observability** | Prometheus, Grafana, Loki, Tempo, Promtail, OpenTelemetry |
 | **Messaging** | Kafka (KRaft) |
-| **Infrastructure as Code** | Terraform, OpenTofu |
-| **GitOps & Delivery** | ArgoCD, GitHub Actions |
-| **Observability & Monitoring** | Prometheus, Grafana, OpenTelemetry, Loki, Tempo |
-| **Service Mesh & Networking** | Istio / Linkerd, Ingress-NGINX |
-| **Security & Secrets** | HashiCorp Vault, Sealed Secrets |
+| **Images** | Local registry (`localhost:5001`) |
+
+**On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): ArgoCD, GitHub Actions, Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.
