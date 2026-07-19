@@ -16,6 +16,7 @@ Everything runs on the same Kind cluster. Folders are numbered in suggested orde
 | **4** | [4_observability-grafana-stack/](4_observability-grafana-stack/) | `./deploy-observability.sh` | `./uninstall-observability.sh` |
 | **5** | [5_otel-instrumentation/](5_otel-instrumentation/) | `./deploy-otel.sh` | `./uninstall-otel.sh` |
 | **6** | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) | `./deploy-kafka.sh` | `./uninstall-kafka.sh` |
+| **7** | [.github/](.github/) | GHA builds → GHCR (no cluster deploy) | — |
 
 ## Quick Start
 
@@ -39,7 +40,7 @@ cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
 cd ../1_kind-cluster && ./uninstall-cluster.sh
 ```
 
-Future capability areas (not yet populated): `gitops/` (ArgoCD), `.github/` (GitHub Actions CI), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
+Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 7), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
 
 ---
 
@@ -53,6 +54,7 @@ Future capability areas (not yet populated): `gitops/` (ArgoCD), `.github/` (Git
 | **Networking** | Ingress NGINX, Services / CoreDNS |
 | **Observability** | Prometheus, Grafana, Loki, Tempo, Promtail, OpenTelemetry |
 | **Messaging** | Kafka (KRaft) |
-| **Images** | Local registry (`localhost:5001`) |
+| **Images** | Local registry (`localhost:5001`); CI → GHCR |
+| **CI** | GitHub Actions ([.github/](.github/)) |
 
-**On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): ArgoCD, GitHub Actions, Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.
+**On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): ArgoCD, Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.

@@ -60,9 +60,9 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | :--- | :--- | :--- |
 | Git as source of truth | Covered — this repo | — |
 | Local image registry workflow | Covered — `localhost:5001` in step 6 | — |
-| **GitHub Actions** — CI: build, test, scan, publish | Planned | `.github/` |
-| Build once, deploy many + **approval gates** (dev → stage → prod) | Planned | `.github/` + `gitops/` |
-| **ArgoCD** — declarative sync, app-of-apps, drift detection | Planned | `gitops/` |
+| **GitHub Actions** — CI: build, publish to GHCR | Covered — [`.github/`](../.github/) | — |
+| Build once, deploy many + **approval gates** (dev → stage → prod) | Partial — sha tags from CI; gates with Argo later | `.github/` + `gitops/` |
+| **ArgoCD** — declarative sync, app-of-apps, drift detection | Planned — pin GHCR `sha-*` tags from CI | `gitops/` |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
 ### 5. Platform APIs & self-service
@@ -129,8 +129,8 @@ Done (Kind lab spine)
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 
 Next capability areas
-7.  gitops/                       → ArgoCD GitOps
-8.  .github/                      → GitHub Actions (build once, multi-env + approval)
+7.  .github/                      → GitHub Actions CI (build → GHCR sha tags)
+8.  gitops/                       → ArgoCD GitOps (deploy those tags; no rebuild)
 9.  security/                     → RBAC, policy, secrets
 10. observability/                → Thanos + Elasticsearch (optional scale-out)
 11. idp/                          → Backstage (minimal)

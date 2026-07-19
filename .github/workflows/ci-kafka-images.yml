@@ -1,0 +1,82 @@
+# Build and publish Kafka OTel images (CI)
+#
+# Produces immutable tags for later GitOps/CD (ArgoCD will pin these digests/tags).
+# Does NOT deploy to Kind — local deploy stays: 6_kafka-otel-tracing/deploy-kafka.sh
+
+name: ci-kafka-images
+
+on:
+  push:
+    branches: [main, "lab/**"]
+    paths:
+      - "6_kafka-otel-tracing/producer-java/**"
+      - "6_kafka-otel-tracing/consumer-python/**"
+      - ".github/workflows/ci-kafka-images.yml"
+  pull_request:
+    paths:
+      - "6_kafka-otel-tracing/producer-java/**"
+      - "6_kafka-otel-tracing/consumer-python/**"
+      - ".github/workflows/ci-kafka-images.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: producer
+            context: 6_kafka-otel-tracing/producer-java
+            image_suffix: otel-kafka-producer
+          - name: consumer
+            context: 6_kafka-otel-tracing/consumer-python
+            image_suffix: otel-kafka-consumer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Image name (lowercase owner)
+        id: meta
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          echo "image=${{ env.REGISTRY }}/${owner}/${{ matrix.image_suffix }}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-$(echo '${{ github.sha }}' | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: docker_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.meta.outputs.image }}
+          tags: |
+            type=raw,value=${{ steps.meta.outputs.sha_tag }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

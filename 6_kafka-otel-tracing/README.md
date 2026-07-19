@@ -29,6 +29,17 @@ kubectl -n otel-kafka-poc logs deploy/kafka-consumer --tail=20
 
 Traces: http://grafana.localhost/ → **Explore** → **Tempo** (look for `producer-service`, `consumer-service`)
 
+## Images: local vs CI
+
+| Path | Registry | How |
+| :--- | :--- | :--- |
+| **Local Kind** | `localhost:5001` | `./deploy-kafka.sh` (build + push + apply) |
+| **CI (GitHub Actions)** | `ghcr.io/<owner>/otel-kafka-*` | [`.github/workflows/ci-kafka-images.yml`](../.github/workflows/ci-kafka-images.yml) — build/push only |
+
+CI tags `sha-<gitsha>` (and `latest` on `main`). Those tags are what a later **ArgoCD** lab will pin — not `kubectl` from the workflow.
+
+Details: [`.github/README.md`](../.github/README.md)
+
 ## Cleanup
 
 ```bash
