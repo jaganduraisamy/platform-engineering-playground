@@ -17,6 +17,6 @@ spec:
             kustomize:
               name: "welcome-webapp" # bare name as it appears in kustomize/base/deployment.yaml
       writeBackConfig:
-        method: "git:secret:argocd/image-updater-git-creds#token"
+        method: "git:secret:argocd/image-updater-git-creds"
         gitConfig:
           branch: "lab/gitops-argocd" # TODO: switch to main once merged

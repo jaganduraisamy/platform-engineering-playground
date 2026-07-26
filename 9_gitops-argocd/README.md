@@ -124,8 +124,11 @@ Fine-grained PAT, scoped to just this repo:
 
 ```bash
 kubectl -n argocd create secret generic image-updater-git-creds \
-  --from-literal=token='<paste PAT here>'
+  --from-literal=username=jaganduraisamy \
+  --from-literal=password='<paste PAT here>'
 ```
+
+`writeBackConfig.method` is validated by a CRD regex (`^(argocd|git|git:[a-zA-Z0-9][a-zA-Z0-9-._/:]*)$`) that does **not** allow a `#field` suffix — unlike `pullSecret`'s `secret:<ns>/<name>#<field>` syntax. So the secret's key names must match a fixed convention instead of being pointed at explicitly. Best-documented guess: `username` + `password`, matching ArgoCD's own repository-credential secret schema. Not yet confirmed against real logs — see below.
 
 ### Apply
 
@@ -134,10 +137,11 @@ kubectl apply -f image-updater.yaml
 kubectl -n argocd logs -l app.kubernetes.io/name=argocd-image-updater -f
 ```
 
-**Two things in `image-updater.yaml` aren't fully doc-confirmed and may need adjusting once you see real logs** (same build→run→read-the-error loop used everywhere else in this step):
+**One thing in `image-updater.yaml` still isn't fully doc-confirmed and may need adjusting once you see real logs** (same build→run→read-the-error loop used everywhere else in this step):
 
-- The secret field name after `#` in `git:secret:argocd/image-updater-git-creds#token` — docs confirm the `secret:<ns>/<name>#<field>` syntax generically (same as registry pull secrets) but the only worked write-back example uses SSH, not an HTTPS PAT. If the controller logs show it can't find the credential, that's the field name to fix, or the secret key to rename.
 - `gitConfig.writeBackTarget` is omitted — the only fully-documented example sets it explicitly, but only for Helm (`helmvalues:/values.yaml`). Kustomize may auto-detect from the Application's source type, or may need an explicit value here. Logs will show if the write-back doesn't find the right file.
+
+(Resolved: the secret field name is not selectable via `#field` — CRD validation regex rejects it. Confirmed live.)
 
 ### Validate
 
