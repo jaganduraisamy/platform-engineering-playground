@@ -59,7 +59,11 @@ jobs:
           images: ${{ steps.meta.outputs.image }}
           tags: |
             type=raw,value=${{ steps.meta.outputs.sha_tag }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+            # ponytail: latest also floats on lab/** so the dev Image Updater (tracking
+            # :latest by digest) has something fresh to test against pre-merge. Tighten
+            # back to main-only once this lands there — multiple concurrent lab
+            # branches would otherwise race for the latest tag.
+            type=raw,value=latest,enable=${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/lab/')) && github.event_name != 'pull_request' }}
           labels: |
             org.opencontainers.image.title=welcome-webapp
             org.opencontainers.image.description=Platform demo welcome page (env via Kustomize)
