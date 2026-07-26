@@ -12,8 +12,8 @@ patches:
 
 images:
   - name: welcome-webapp
-    newName: welcome-webapp
-    newTag: local
+    newName: ghcr.io/jaganduraisamy/welcome-webapp
+    newTag: sha-21979ff
 
 replicas:
   - name: welcome-webapp

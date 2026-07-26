@@ -44,7 +44,7 @@ cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
 cd ../1_kind-cluster && ./uninstall-cluster.sh
 ```
 
-Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 8 + overlays from step 7), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
+Future capability areas: `9_gitops-argocd/` (ArgoCD — consumes GHCR tags from step 8 + overlays from step 7), `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
 
 ---
 

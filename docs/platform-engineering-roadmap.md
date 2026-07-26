@@ -7,7 +7,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 ## How To Use This List
 
 - Treat numbered folders `1_*` … `6_*` as the completed Kind lab spine — do not renumber them for certifications.
-- Pick the next **capability track** below; add a folder when you start (`gitops/`, `security/`, etc.).
+- Pick the next **capability track** below; add a folder when you start (`9_gitops-argocd/`, `security/`, etc.).
 - After each experiment, note what broke and how you fixed it.
 
 ---
@@ -61,8 +61,8 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Git as source of truth | Covered — this repo | — |
 | Local image registry workflow | Covered — `localhost:5001` in step 6; Kind `load` in step 7 | — |
 | **GitHub Actions** — CI: build, publish to GHCR | Covered (base) — welcome-webapp → GHCR `sha-*` | [`8_github-actions/`](../8_github-actions/) |
-| Build once, deploy many + **approval gates** | Partial — overlays ready; promote/approvals next | steps 7–8 + `gitops/` |
-| **ArgoCD** — declarative sync | Planned — pin GHCR `sha-*` into step 7 overlays | `gitops/` |
+| Build once, deploy many + **approval gates** | Partial — overlays ready; promote/approvals next | steps 7–9 |
+| **ArgoCD** — declarative sync | Covered (base) — controller installed | [`9_gitops-argocd/`](../9_gitops-argocd/) |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
 ### 5. Platform APIs & self-service
@@ -72,7 +72,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
 | Operators + CRDs (consume) | Partial — OTel Operator / Instrumentation CR | — |
-| Custom CRDs or Crossplane compositions (light) | Planned | `platform-apis/` or under `gitops/` |
+| Custom CRDs or Crossplane compositions (light) | Planned | `platform-apis/` or under `9_gitops-argocd/` |
 | Reconciliation loop literacy | Partial — observe controllers in Kind | Docs + labs |
 
 ### 6. Security & conformance
@@ -129,9 +129,9 @@ Done (Kind lab spine)
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
 8. 8_github-actions/              → GitHub Actions CI → GHCR (workflow in .github/)
+9. 9_gitops-argocd/               → ArgoCD GitOps (deploy sha tags into overlays)
 
 Next capability areas
-9.  gitops/                       → ArgoCD GitOps (deploy sha tags into overlays)
 10. security/                     → RBAC, policy, secrets
 11. observability/                → Thanos + Elasticsearch (optional scale-out)
 12. idp/                          → Backstage (minimal)
