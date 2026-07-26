@@ -6,7 +6,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 
 ## How To Use This List
 
-- Treat numbered folders `1_*` … `6_*` as the completed Kind lab spine — do not renumber them for certifications.
+- Treat numbered folders `1_*` … `9_*` as the completed Kind lab spine — do not renumber them for certifications.
 - Pick the next **capability track** below; add a folder when you start (`9_gitops-argocd/`, `security/`, etc.).
 - After each experiment, note what broke and how you fixed it.
 
@@ -60,9 +60,10 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | :--- | :--- | :--- |
 | Git as source of truth | Covered — this repo | — |
 | Local image registry workflow | Covered — `localhost:5001` in step 6; Kind `load` in step 7 | — |
-| **GitHub Actions** — CI: build, publish to GHCR | Covered (base) — welcome-webapp → GHCR `sha-*` | [`8_github-actions/`](../8_github-actions/) |
-| Build once, deploy many + **approval gates** | Partial — overlays ready; promote/approvals next | steps 7–9 |
-| **ArgoCD** — declarative sync | Covered (base) — controller installed | [`9_gitops-argocd/`](../9_gitops-argocd/) |
+| **GitHub Actions** — CI: build multi-arch (amd64+arm64), publish to GHCR | Covered — welcome-webapp → GHCR `sha-*` + floating `latest` | [`8_github-actions/`](../8_github-actions/) |
+| Build once, deploy many + **approval gates** | Covered (dev/uat/prod) — solo-compatible gate (deliberate trigger + automated tag/render checks in CI), not peer review (GitHub blocks self-approval on both PR review and Environment required-reviewers) | [`9_gitops-argocd/promote-overlay.yml`](../.github/workflows/promote-overlay.yml) |
+| **ArgoCD** — declarative sync | Covered — controller + 3 `Application`s (dev auto-sync, uat/prod gated) | [`9_gitops-argocd/`](../9_gitops-argocd/) |
+| **Image Updater** — auto-detect new builds, write back to Git | Covered (dev only) — tracks GHCR `:latest` digest, commits `.argocd-source-*.yaml` override | [`9_gitops-argocd/image-updater.yaml`](../9_gitops-argocd/image-updater.yaml) |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
 ### 5. Platform APIs & self-service
@@ -128,8 +129,8 @@ Done (Kind lab spine)
 5. 5_otel-instrumentation/        → OTel auto-instrumentation
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
-8. 8_github-actions/              → GitHub Actions CI → GHCR (workflow in .github/)
-9. 9_gitops-argocd/               → ArgoCD GitOps (deploy sha tags into overlays)
+8. 8_github-actions/              → GitHub Actions CI → GHCR, multi-arch
+9. 9_gitops-argocd/               → ArgoCD + Image Updater + promotion gate (dev auto, uat/prod gated)
 
 Next capability areas
 10. security/                     → RBAC, policy, secrets

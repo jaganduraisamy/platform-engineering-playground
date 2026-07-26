@@ -1,8 +1,6 @@
 from flask import Flask
 import os
 
-# trigger: image-updater end-to-end test build
-
 app = Flask(__name__)
 
 
