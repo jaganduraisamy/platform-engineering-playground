@@ -20,7 +20,7 @@ kubectl apply --server-side --force-conflicts -n "${NAMESPACE}" \
   -f "https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/config/install.yaml"
 
 echo "==> Waiting for rollout"
-kubectl -n "${NAMESPACE}" wait --for=condition=available --timeout=180s deployment/argocd-image-updater
+kubectl -n "${NAMESPACE}" wait --for=condition=available --timeout=180s deployment/argocd-image-updater-controller
 
 echo
 echo "OK — argocd-image-updater installed in namespace '${NAMESPACE}'"
