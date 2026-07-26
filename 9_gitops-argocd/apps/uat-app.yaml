@@ -12,7 +12,5 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: welcome-uat
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  # No automated sync: approval gate. Promote with:
+  #   argocd app sync welcome-webapp-uat

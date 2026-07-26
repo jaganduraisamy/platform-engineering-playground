@@ -84,6 +84,21 @@ kubectl delete -f apps/
 ./uninstall-argocd.sh
 ```
 
+## 5. Approval gates (uat / prod)
+
+`dev` keeps `automated` sync — every push auto-deploys, fast feedback. `uat` and `prod` have **no** `syncPolicy.automated` — ArgoCD still detects and shows drift (`OutOfSync`) but won't apply it until a human triggers a sync. That's the gate: promotion requires an explicit action, not a git push alone.
+
+Promote manually (no `argocd` CLI needed — this is literally what the CLI does under the hood: set the Application's `.operation` field, which the controller watches):
+
+```bash
+kubectl -n argocd patch application welcome-webapp-uat --type merge \
+  -p '{"operation":{"sync":{"revision":"HEAD"}}}'
+```
+
+Same for `welcome-webapp-prod` once verified in `uat`. Or use the ArgoCD UI's "Sync" button — same effect, one click.
+
+Why not a PR-based gate (GitHub Environments + required reviewers) instead: that needs a second GitHub account to approve, since GitHub blocks self-approval on protected branches — doesn't work solo. The ArgoCD manual-sync gate above gives the same "human must approve before prod" property without that constraint.
+
 ## Next step
 
-Once working: collapse `apps/*.yaml` into a single `ApplicationSet` (git directory generator), then approval gates / promotion flow across envs.
+Once comfortable with plain `Application` + manual-sync gates: collapse `apps/*.yaml` into a single `ApplicationSet` (git directory generator) — same gate policy can still apply per-env via the generator template.
