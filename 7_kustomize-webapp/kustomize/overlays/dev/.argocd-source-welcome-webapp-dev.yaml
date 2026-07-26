@@ -1,3 +1,3 @@
 kustomize:
   images:
-  - welcome-webapp=ghcr.io/jaganduraisamy/welcome-webapp:latest@sha256:4e54a6d71f7e25da7335e3a9cdd6935b0700df23f8ab6107f9afcdace0e227ce
+  - welcome-webapp=ghcr.io/jaganduraisamy/welcome-webapp:latest@sha256:3d97c0063ab5e67d186c3636404b93ba2222aa59daacebd7d1995dd52eae9e68
