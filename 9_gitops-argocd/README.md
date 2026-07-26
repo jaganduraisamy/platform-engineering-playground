@@ -77,6 +77,29 @@ kubectl -n welcome-dev get deploy welcome-webapp -o jsonpath='{.spec.template.sp
 
 Image should now read `ghcr.io/jaganduraisamy/welcome-webapp:sha-*`, not `:local`.
 
+## 5. Approval gates (uat / prod)
+
+**The gate can't live in ArgoCD.** ArgoCD is a sync engine, not a review tool — there's no CRD field for "require approval before applying this diff." An ArgoCD-side manual-sync policy (no `automated:` block) only delays *who* clicks apply; it doesn't check whether the Git change was reviewed. All 3 `Application`s keep `automated: true` — ArgoCD's only job is "sync whatever's on the tracked branch, immediately."
+
+**The gate lives in GitHub**, via [`.github/workflows/promote-overlay.yml`](../.github/workflows/promote-overlay.yml): a `workflow_dispatch` job targeting `environment: uat` or `environment: prod`. Once those Environments have a required-reviewer rule (one-time manual setup below), the job pauses until approved, then bumps the overlay's `newTag` and pushes — ArgoCD picks up the merged change automatically.
+
+Why not branch-protection PR reviews instead: GitHub blocks self-approval of your own PR, so that gate is undemonstrable solo. GitHub **Environment** deployment approvals are a different mechanism — you can be listed as a required reviewer and approve your own workflow run. That's what makes this solo-compatible.
+
+**One-time setup (GitHub UI, not a repo file):**
+
+1. Repo → Settings → Environments → New environment → name it `uat` → Required reviewers → add yourself → Save.
+2. Repeat for `prod`.
+
+**Promote:**
+
+```text
+Actions → promote-overlay → Run workflow
+  environment: uat
+  tag: sha-980b8a6
+```
+
+Job pauses at the `uat` Environment gate → Actions tab shows "Review deployments" → approve → job bumps `overlays/uat/kustomization.yaml` and pushes → ArgoCD auto-syncs. Repeat with `environment: prod` once verified in `uat`.
+
 ## Cleanup
 
 ```bash
@@ -84,21 +107,6 @@ kubectl delete -f apps/
 ./uninstall-argocd.sh
 ```
 
-## 5. Approval gates (uat / prod)
-
-`dev` keeps `automated` sync — every push auto-deploys, fast feedback. `uat` and `prod` have **no** `syncPolicy.automated` — ArgoCD still detects and shows drift (`OutOfSync`) but won't apply it until a human triggers a sync. That's the gate: promotion requires an explicit action, not a git push alone.
-
-Promote manually (no `argocd` CLI needed — this is literally what the CLI does under the hood: set the Application's `.operation` field, which the controller watches):
-
-```bash
-kubectl -n argocd patch application welcome-webapp-uat --type merge \
-  -p '{"operation":{"sync":{"revision":"HEAD"}}}'
-```
-
-Same for `welcome-webapp-prod` once verified in `uat`. Or use the ArgoCD UI's "Sync" button — same effect, one click.
-
-Why not a PR-based gate (GitHub Environments + required reviewers) instead: that needs a second GitHub account to approve, since GitHub blocks self-approval on protected branches — doesn't work solo. The ArgoCD manual-sync gate above gives the same "human must approve before prod" property without that constraint.
-
 ## Next step
 
-Once comfortable with plain `Application` + manual-sync gates: collapse `apps/*.yaml` into a single `ApplicationSet` (git directory generator) — same gate policy can still apply per-env via the generator template.
+Collapse `apps/*.yaml` into a single `ApplicationSet` (git directory generator) — the approval gate above is unaffected either way, since it lives in GitHub, not in how the `Application`/`ApplicationSet` objects are structured.

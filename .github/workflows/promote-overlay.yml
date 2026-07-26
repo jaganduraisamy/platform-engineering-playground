@@ -1,0 +1,53 @@
+# Approval gate for promoting welcome-webapp to uat/prod.
+# The gate is the GitHub Environment's required-reviewer rule (repo Settings),
+# not ArgoCD. This job pauses until that Environment is approved, then bumps
+# the overlay's image tag and pushes — ArgoCD (automated sync) takes it from there.
+
+name: promote-overlay
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - uat
+          - prod
+      tag:
+        description: "Image tag to promote (e.g. sha-980b8a6)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Bump overlay image tag
+        run: |
+          file="7_kustomize-webapp/kustomize/overlays/${{ inputs.environment }}/kustomization.yaml"
+          sed -i "s/newTag: .*/newTag: ${{ inputs.tag }}/" "$file"
+          cat "$file"
+
+      - name: Commit and push
+        run: |
+          file="7_kustomize-webapp/kustomize/overlays/${{ inputs.environment }}/kustomization.yaml"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$file"
+          if git diff --cached --quiet; then
+            echo "No change — ${{ inputs.environment }} already at ${{ inputs.tag }}"
+            exit 0
+          fi
+          git commit -m "Promote ${{ inputs.environment }} to ${{ inputs.tag }} (approved via GitHub Environment: ${{ inputs.environment }})"
+          git push origin HEAD:${{ github.ref_name }}
