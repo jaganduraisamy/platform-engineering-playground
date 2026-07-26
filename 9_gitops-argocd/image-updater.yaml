@@ -1,0 +1,22 @@
+# dev-only: uat/prod stay gated behind promote-overlay.yml (see README §5).
+# Auto-updating them here would bypass that gate entirely.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: welcome-webapp-dev-updater
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: "welcome-webapp-dev"
+      images:
+        - alias: "webapp"
+          imageName: "ghcr.io/jaganduraisamy/welcome-webapp:latest"
+          commonUpdateSettings:
+            updateStrategy: "digest"
+          manifestTargets:
+            kustomize:
+              name: "welcome-webapp" # bare name as it appears in kustomize/base/deployment.yaml
+      writeBackConfig:
+        method: "git:secret:argocd/image-updater-git-creds#token"
+        gitConfig:
+          branch: "lab/gitops-argocd" # TODO: switch to main once merged

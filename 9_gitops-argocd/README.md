@@ -101,11 +101,59 @@ Actions → promote-overlay → Run workflow
 
 Job verifies the tag, renders the overlay, commits, pushes → ArgoCD auto-syncs. Repeat with `environment: prod` once verified in `uat`.
 
+## 6. Image Updater (dev only)
+
+[`argocd-image-updater`](https://argocd-image-updater.readthedocs.io/) (v1.x, CRD-based — not the older annotation config some guides still show) watches GHCR for new builds and writes the new tag back into Git itself, closing the loop CI → registry → Git → cluster without a manual overlay edit.
+
+**Scoped to `dev` only, deliberately.** It tracks the `:latest` tag's digest (`updateStrategy: digest` — your tags are `sha-*`, not semver, so the default `semver` strategy doesn't apply) and writes straight back to Git. Doing that on `uat`/`prod` would bypass `promote-overlay.yml` entirely — every CI build would auto-deploy everywhere. `dev` has no such gate to bypass.
+
+### Install
+
+```bash
+chmod +x install-image-updater.sh uninstall-image-updater.sh
+./install-image-updater.sh
+```
+
+### Git write-back credential (manual, one-time)
+
+Fine-grained PAT, scoped to just this repo:
+
+1. GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token.
+2. Repository access: only `platform-engineering-sandbox`.
+3. Permissions: **Contents: Read and write**. Nothing else.
+
+```bash
+kubectl -n argocd create secret generic image-updater-git-creds \
+  --from-literal=token='<paste PAT here>'
+```
+
+### Apply
+
+```bash
+kubectl apply -f image-updater.yaml
+kubectl -n argocd logs -l app.kubernetes.io/name=argocd-image-updater -f
+```
+
+**Two things in `image-updater.yaml` aren't fully doc-confirmed and may need adjusting once you see real logs** (same build→run→read-the-error loop used everywhere else in this step):
+
+- The secret field name after `#` in `git:secret:argocd/image-updater-git-creds#token` — docs confirm the `secret:<ns>/<name>#<field>` syntax generically (same as registry pull secrets) but the only worked write-back example uses SSH, not an HTTPS PAT. If the controller logs show it can't find the credential, that's the field name to fix, or the secret key to rename.
+- `gitConfig.writeBackTarget` is omitted — the only fully-documented example sets it explicitly, but only for Helm (`helmvalues:/values.yaml`). Kustomize may auto-detect from the Application's source type, or may need an explicit value here. Logs will show if the write-back doesn't find the right file.
+
+### Validate
+
+```bash
+kubectl get imageupdater -n argocd
+kubectl -n welcome-dev get deploy welcome-webapp -o jsonpath='{.spec.template.spec.containers[0].image}'
+```
+
+Push a new commit touching `7_kustomize-webapp/app/**` (triggers step 8's CI → new `:latest` digest) and watch `dev`'s image change on its own, no `promote-overlay.yml` run needed.
+
 ## Cleanup
 
 ```bash
 kubectl delete -f apps/
 ./uninstall-argocd.sh
+./uninstall-image-updater.sh
 ```
 
 ## Next step
