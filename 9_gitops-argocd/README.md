@@ -128,7 +128,7 @@ kubectl -n argocd create secret generic image-updater-git-creds \
   --from-literal=password='<paste PAT here>'
 ```
 
-`writeBackConfig.method` is validated by a CRD regex (`^(argocd|git|git:[a-zA-Z0-9][a-zA-Z0-9-._/:]*)$`) that does **not** allow a `#field` suffix — unlike `pullSecret`'s `secret:<ns>/<name>#<field>` syntax. So the secret's key names must match a fixed convention instead of being pointed at explicitly. Best-documented guess: `username` + `password`, matching ArgoCD's own repository-credential secret schema. Not yet confirmed against real logs — see below.
+`writeBackConfig.method` is validated by a CRD regex (`^(argocd|git|git:[a-zA-Z0-9][a-zA-Z0-9-._/:]*)$`) that does **not** allow a `#field` suffix — unlike `pullSecret`'s `secret:<ns>/<name>#<field>` syntax. So the secret's key names must match a fixed convention instead of being pointed at explicitly: **confirmed live** — `username` + `password` (matching ArgoCD's own repository-credential secret schema) is correct.
 
 ### Apply
 
@@ -137,20 +137,25 @@ kubectl apply -f image-updater.yaml
 kubectl -n argocd logs -l app.kubernetes.io/name=argocd-image-updater -f
 ```
 
-**One thing in `image-updater.yaml` still isn't fully doc-confirmed and may need adjusting once you see real logs** (same build→run→read-the-error loop used everywhere else in this step):
+`gitConfig.writeBackTarget` is left unset — **confirmed live**: it doesn't need a value for Kustomize apps. Instead of editing `kustomization.yaml` directly, the controller writes a `.argocd-source-<app-name>.yaml` side-file into the overlay directory (here: `kustomize/overlays/dev/.argocd-source-welcome-webapp-dev.yaml`), containing:
 
-- `gitConfig.writeBackTarget` is omitted — the only fully-documented example sets it explicitly, but only for Helm (`helmvalues:/values.yaml`). Kustomize may auto-detect from the Application's source type, or may need an explicit value here. Logs will show if the write-back doesn't find the right file.
+```yaml
+kustomize:
+  images:
+  - welcome-webapp=ghcr.io/jaganduraisamy/welcome-webapp:latest@sha256:<digest>
+```
 
-(Resolved: the secret field name is not selectable via `#field` — CRD validation regex rejects it. Confirmed live.)
+ArgoCD's repo-server auto-merges this as a Kustomize image override at render time — that's a built-in ArgoCD convention, not something `kustomization.yaml` needs to reference. The commit author is `argocd-image-updater <noreply@argoproj.io>`, commit message `build: automatic update of welcome-webapp-dev`.
 
 ### Validate
 
 ```bash
 kubectl get imageupdater -n argocd
+kubectl -n argocd get application welcome-webapp-dev -o wide      # Synced + Healthy at the bot's commit
 kubectl -n welcome-dev get deploy welcome-webapp -o jsonpath='{.spec.template.spec.containers[0].image}'
 ```
 
-Push a new commit touching `7_kustomize-webapp/app/**` (triggers step 8's CI → new `:latest` digest) and watch `dev`'s image change on its own, no `promote-overlay.yml` run needed.
+Image should read `ghcr.io/jaganduraisamy/welcome-webapp:latest@sha256:...` — digest-pinned, not `:sha-*`. Confirmed working end-to-end: push → CI builds multi-arch → GHCR `:latest` gets a new digest → Image Updater detects it within its 2min poll interval → commits the `.argocd-source-*.yaml` override → ArgoCD auto-syncs → pod updated. No `promote-overlay.yml` run needed for `dev`.
 
 ## Cleanup
 
