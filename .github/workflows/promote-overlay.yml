@@ -1,7 +1,13 @@
-# Approval gate for promoting welcome-webapp to uat/prod.
-# The gate is the GitHub Environment's required-reviewer rule (repo Settings),
-# not ArgoCD. This job pauses until that Environment is approved, then bumps
-# the overlay's image tag and pushes — ArgoCD (automated sync) takes it from there.
+# Solo-repo promotion gate for welcome-webapp uat/prod.
+#
+# No peer-reviewed gate is possible here: GitHub blocks both PR
+# self-approval and Environment required-reviewer self-approval for the
+# user who triggered the run. What IS enforceable solo, all automated:
+#   1. Deliberate trigger only (workflow_dispatch, explicit env+tag — no
+#      promotion on an ordinary push).
+#   2. The tag must actually exist in GHCR before it's promoted.
+#   3. The resulting manifest must be structurally valid before it's pushed.
+# ArgoCD (automated sync) applies it once merged.
 
 name: promote-overlay
 
@@ -33,11 +39,34 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Verify tag exists in GHCR
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          token=$(curl -sf "https://ghcr.io/token?scope=repository:${owner}/welcome-webapp:pull" | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer ${token}" \
+            "https://ghcr.io/v2/${owner}/welcome-webapp/manifests/${{ inputs.tag }}")
+          if [ "$code" != "200" ]; then
+            echo "::error::Tag '${{ inputs.tag }}' not found in ghcr.io/${owner}/welcome-webapp (HTTP $code)"
+            exit 1
+          fi
+          echo "Tag ${{ inputs.tag }} confirmed present."
+
       - name: Bump overlay image tag
         run: |
           file="7_kustomize-webapp/kustomize/overlays/${{ inputs.environment }}/kustomization.yaml"
           sed -i "s/newTag: .*/newTag: ${{ inputs.tag }}/" "$file"
           cat "$file"
+
+      - name: Validate rendered manifest
+        run: |
+          # No cluster reachable from a GitHub-hosted runner, so this can only be
+          # a build-time render check, not a schema/dry-run check against a live API.
+          out=$(kubectl kustomize "7_kustomize-webapp/kustomize/overlays/${{ inputs.environment }}")
+          if [ -z "$out" ]; then
+            echo "::error::kustomize render produced empty output"
+            exit 1
+          fi
+          echo "$out"
 
       - name: Commit and push
         run: |
@@ -49,5 +78,5 @@ jobs:
             echo "No change — ${{ inputs.environment }} already at ${{ inputs.tag }}"
             exit 0
           fi
-          git commit -m "Promote ${{ inputs.environment }} to ${{ inputs.tag }} (approved via GitHub Environment: ${{ inputs.environment }})"
+          git commit -m "Promote ${{ inputs.environment }} to ${{ inputs.tag }}"
           git push origin HEAD:${{ github.ref_name }}

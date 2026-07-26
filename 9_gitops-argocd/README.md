@@ -77,18 +77,19 @@ kubectl -n welcome-dev get deploy welcome-webapp -o jsonpath='{.spec.template.sp
 
 Image should now read `ghcr.io/jaganduraisamy/welcome-webapp:sha-*`, not `:local`.
 
-## 5. Approval gates (uat / prod)
+## 5. Promotion gate (uat / prod)
 
-**The gate can't live in ArgoCD.** ArgoCD is a sync engine, not a review tool — there's no CRD field for "require approval before applying this diff." An ArgoCD-side manual-sync policy (no `automated:` block) only delays *who* clicks apply; it doesn't check whether the Git change was reviewed. All 3 `Application`s keep `automated: true` — ArgoCD's only job is "sync whatever's on the tracked branch, immediately."
+**No peer-reviewed gate is possible solo.** GitHub blocks self-approval on your own PR (branch protection) *and* blocks a workflow's triggering user from approving that same run via an Environment's required-reviewer rule. Neither is demonstrable with one GitHub account — don't bother setting up "Required reviewers," it'll never let you approve your own run.
 
-**The gate lives in GitHub**, via [`.github/workflows/promote-overlay.yml`](../.github/workflows/promote-overlay.yml): a `workflow_dispatch` job targeting `environment: uat` or `environment: prod`. Once those Environments have a required-reviewer rule (one-time manual setup below), the job pauses until approved, then bumps the overlay's `newTag` and pushes — ArgoCD picks up the merged change automatically.
+**What's real and solo-compatible instead** — all in [`.github/workflows/promote-overlay.yml`](../.github/workflows/promote-overlay.yml), all automated, no human reviewer required:
 
-Why not branch-protection PR reviews instead: GitHub blocks self-approval of your own PR, so that gate is undemonstrable solo. GitHub **Environment** deployment approvals are a different mechanism — you can be listed as a required reviewer and approve your own workflow run. That's what makes this solo-compatible.
+1. **Deliberate trigger only** — `workflow_dispatch` with explicit `environment` + `tag` inputs. Nothing reaches uat/prod from an ordinary push; promotion only happens if someone consciously runs this workflow with those exact values.
+2. **Tag existence check** — queries GHCR (anonymous token, same trick used to confirm the package is public) and fails the job if the given tag doesn't exist, before touching any file.
+3. **Render validation** — `kubectl kustomize` must succeed and produce output before the commit happens. Note: no `kubectl apply --dry-run` here — tested and confirmed it still requires a reachable API server even with `--validate=false`, and GitHub-hosted runners have no path to this local Kind cluster. So this catches broken overlay syntax/patches, not full K8s schema errors.
 
-**One-time setup (GitHub UI, not a repo file):**
+ArgoCD (`automated: true` on all 3 `Application`s) applies the change the moment it's pushed — no ArgoCD-side gate either; delaying *who* can click sync doesn't gate the change itself, only who applies an already-merged one.
 
-1. Repo → Settings → Environments → New environment → name it `uat` → Required reviewers → add yourself → Save.
-2. Repeat for `prod`.
+**Optional extra guardrails (GitHub UI, no reviewer needed, not demonstrated here):** an Environment "wait timer" (mandatory pause + cancel window before the job proceeds) and a "deployment branches" restriction (e.g. only `main` may deploy to the `prod` Environment). Both live in Settings → Environments, both work without a second person — worth adding once this is on `main`.
 
 **Promote:**
 
@@ -98,7 +99,7 @@ Actions → promote-overlay → Run workflow
   tag: sha-980b8a6
 ```
 
-Job pauses at the `uat` Environment gate → Actions tab shows "Review deployments" → approve → job bumps `overlays/uat/kustomization.yaml` and pushes → ArgoCD auto-syncs. Repeat with `environment: prod` once verified in `uat`.
+Job verifies the tag, renders the overlay, commits, pushes → ArgoCD auto-syncs. Repeat with `environment: prod` once verified in `uat`.
 
 ## Cleanup
 
