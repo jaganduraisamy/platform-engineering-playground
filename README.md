@@ -18,6 +18,9 @@ Everything runs on the same Kind cluster. Folders are numbered in suggested orde
 | **6** | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) | `./deploy-kafka.sh` | `./uninstall-kafka.sh` |
 | **7** | [7_kustomize-webapp/](7_kustomize-webapp/) | `./deploy-webapp.sh dev` | `./uninstall-webapp.sh` |
 | **8** | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
+| **10** | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
+
+Step 9 (ArgoCD GitOps) is still on `lab/gitops-argocd`, not merged yet — hence the gap. Step 10 only needs steps 1, 3, and 4, not step 9.
 
 ## Quick Start
 
@@ -30,12 +33,14 @@ cd ../5_otel-instrumentation && ./deploy-otel.sh
 cd ../6_kafka-otel-tracing && ./deploy-kafka.sh
 cd ../7_kustomize-webapp && ./deploy-webapp.sh dev
 cd ../8_github-actions && ./validate-ci-local.sh
+cd ../10_opencost-cost-analysis && ./install-opencost.sh
 ```
 
 ## Teardown (reverse order)
 
 ```bash
-cd 7_kustomize-webapp && ./uninstall-webapp.sh
+cd 10_opencost-cost-analysis && ./uninstall-opencost.sh
+cd ../7_kustomize-webapp && ./uninstall-webapp.sh
 cd ../6_kafka-otel-tracing && ./uninstall-kafka.sh
 cd ../5_otel-instrumentation && ./uninstall-otel.sh
 cd ../4_observability-grafana-stack && ./uninstall-observability.sh
@@ -60,5 +65,6 @@ Future capability areas: `gitops/` (ArgoCD — consumes GHCR tags from step 8 + 
 | **Messaging** | Kafka (KRaft) |
 | **Images** | Local Kind load / `localhost:5001` (step 6); CI → GHCR (step 8) |
 | **CI** | GitHub Actions ([8_github-actions/](8_github-actions/), workflow under `.github/`) |
+| **Cost** | OpenCost ([10_opencost-cost-analysis/](10_opencost-cost-analysis/)) |
 
 **On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): ArgoCD, Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.
