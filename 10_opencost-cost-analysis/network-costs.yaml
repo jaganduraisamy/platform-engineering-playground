@@ -1,0 +1,132 @@
+# Kubecost's network-costs DaemonSet, standalone (not the full cost-analyzer chart).
+# Produces kubecost_pod_network_egress_bytes_total{internet,same_zone,same_region}
+# by reading each node's conntrack table (/proc/net, /proc/sys/net/netfilter) directly.
+# This is the metric OpenCost's egress cost PromQL actually queries — plain cAdvisor
+# byte counters have no destination info and can't feed it.
+#
+# Unlike every other workload in this lab, this one is privileged + hostNetwork + root,
+# because reading conntrack requires it. Source: kubecost/cost-analyzer chart's
+# cost-analyzer-network-costs-template.yaml (networkCosts.enabled, default off there).
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: network-costs-config
+  namespace: opencost
+data:
+  config.yaml: |
+    destinations:
+      in-zone:
+        - "127.0.0.0/8"
+        - "169.254.0.0/16"
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
+      in-region: []
+      cross-region: []
+      internet: []
+      direct-classification: []
+    services:
+      google-cloud-services: true
+      amazon-web-services: true
+      azure-cloud-services: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: network-costs
+  namespace: opencost
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: network-costs-read
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "endpoints", "services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: network-costs-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: network-costs-read
+subjects:
+  - kind: ServiceAccount
+    name: network-costs
+    namespace: opencost
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: network-costs
+  namespace: opencost
+  labels:
+    app: network-costs
+spec:
+  selector:
+    matchLabels:
+      app: network-costs
+  template:
+    metadata:
+      labels:
+        app: network-costs
+    spec:
+      hostNetwork: true
+      serviceAccountName: network-costs
+      containers:
+        - name: network-costs
+          image: icr.io/kubecost/network-costs:v0.18.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_PORT
+              value: "3001"
+            - name: TRAFFIC_LOGGING_ENABLED
+              value: "true"
+            - name: LOG_LEVEL
+              value: "info"
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          ports:
+            - name: http-server
+              containerPort: 3001
+              hostPort: 3001
+          volumeMounts:
+            - mountPath: /net
+              name: nf-conntrack
+            - mountPath: /netfilter
+              name: netfilter
+            - mountPath: /network-costs/config
+              name: network-costs-config
+      volumes:
+        - name: nf-conntrack
+          hostPath:
+            path: /proc/net
+        - name: netfilter
+          hostPath:
+            path: /proc/sys/net/netfilter
+        - name: network-costs-config
+          configMap:
+            name: network-costs-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: network-costs
+  namespace: opencost
+spec:
+  clusterIP: None
+  selector:
+    app: network-costs
+  ports:
+    - name: http-server
+      port: 3001
+      targetPort: 3001

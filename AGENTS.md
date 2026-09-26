@@ -20,7 +20,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
 - Future capability areas as they grow:
   - Numbered labs `1_*` … `N_*` for the Kind / delivery / GitOps experiment spine (`7_kustomize-webapp/`, `8_github-actions/`, `9_gitops-argocd/`; GHA workflow YAML stays under `.github/workflows/`) — capability areas get the next number when work on them starts
   - `security/` for Vault, sealed-secrets, RBAC and policy
-  - `observability/` for Thanos / Elasticsearch scale-out
+  - `observability/` for Elasticsearch scale-out (Thanos is covered — `11_thanos/`)
   - `idp/` for Backstage / developer portals
   - `terraform/` for IaC experiments
   - `docs/` for runbooks, roadmap, and competency coverage notes

@@ -19,6 +19,10 @@ Everything runs on the same Kind cluster. Folders are numbered in suggested orde
 | **7** | [7_kustomize-webapp/](7_kustomize-webapp/) | `./deploy-webapp.sh dev` | `./uninstall-webapp.sh` |
 | **8** | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
 | **9** | [9_gitops-argocd/](9_gitops-argocd/) | `./install-argocd.sh` + `./install-image-updater.sh` | `./uninstall-argocd.sh` + `./uninstall-image-updater.sh` |
+| **10** | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
+| **11** | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
+
+Steps 10 and 11 only need steps 1, 3, and 4, not step 9.
 
 ## Quick Start
 
@@ -32,12 +36,16 @@ cd ../6_kafka-otel-tracing && ./deploy-kafka.sh
 cd ../7_kustomize-webapp && ./deploy-webapp.sh dev
 cd ../8_github-actions && ./validate-ci-local.sh
 cd ../9_gitops-argocd && ./install-argocd.sh && kubectl apply -f apps/
+cd ../10_opencost-cost-analysis && ./install-opencost.sh
+cd ../11_thanos && ./deploy-thanos.sh
 ```
 
 ## Teardown (reverse order)
 
 ```bash
-cd 9_gitops-argocd && ./uninstall-image-updater.sh && ./uninstall-argocd.sh
+cd 11_thanos && ./uninstall-thanos.sh
+cd ../10_opencost-cost-analysis && ./uninstall-opencost.sh
+cd ../9_gitops-argocd && ./uninstall-image-updater.sh && ./uninstall-argocd.sh
 cd ../7_kustomize-webapp && ./uninstall-webapp.sh
 cd ../6_kafka-otel-tracing && ./uninstall-kafka.sh
 cd ../5_otel-instrumentation && ./uninstall-otel.sh
@@ -47,7 +55,7 @@ cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
 cd ../1_kind-cluster && ./uninstall-cluster.sh
 ```
 
-Future capability areas: `security/`, `observability/` (Thanos, Elasticsearch), `idp/` (Backstage), `terraform/`.
+Future capability areas: `security/`, `observability/` (Elasticsearch), `idp/` (Backstage), `terraform/` (otel-benchmark), `rca-labs`.
 
 ---
 
@@ -59,10 +67,12 @@ Future capability areas: `security/`, `observability/` (Thanos, Elasticsearch), 
 | :--- | :--- |
 | **Orchestration** | Kubernetes, Kind, Helm, kubectl, Kustomize |
 | **Networking** | Ingress NGINX, Services / CoreDNS |
-| **Observability** | Prometheus, Grafana, Loki, Tempo, Promtail, OpenTelemetry |
+| **Observability** | Prometheus, Grafana, Loki, Tempo, Promtail, OpenTelemetry, Thanos, MinIO |
 | **Messaging** | Kafka (KRaft) |
 | **Images** | Local Kind load / `localhost:5001` (step 6); CI → GHCR, multi-arch (step 8) |
 | **CI** | GitHub Actions ([8_github-actions/](8_github-actions/), workflow under `.github/`) |
 | **GitOps** | ArgoCD + Image Updater ([9_gitops-argocd/](9_gitops-argocd/)) |
+| **Cost** | OpenCost ([10_opencost-cost-analysis/](10_opencost-cost-analysis/)) |
+| **Long-term metrics** | Thanos ([11_thanos/](11_thanos/)) — Sidecar, Store Gateway, Compactor, Query on MinIO |
 
-**On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): Thanos, Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.
+**On the roadmap (not labs yet)** — see [docs/platform-engineering-roadmap.md](docs/platform-engineering-roadmap.md): Elasticsearch, NetworkPolicy / Gateway API, Kyverno or OPA, Vault / Sealed Secrets, Backstage, Terraform / OpenTofu.

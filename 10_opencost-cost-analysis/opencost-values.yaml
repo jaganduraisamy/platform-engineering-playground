@@ -1,0 +1,40 @@
+# OpenCost Helm values for this sandbox.
+# Chart: https://github.com/opencost/opencost-helm-chart
+#
+# Points OpenCost at the Prometheus already deployed in step 4
+# (4_observability-grafana-stack/) instead of installing a second one —
+# that Prometheus already scrapes kube-state-metrics, which OpenCost needs
+# for request-based cost allocation.
+
+opencost:
+  prometheus:
+    internal:
+      enabled: true
+      serviceName: prometheus
+      namespaceName: observability
+      port: 9090
+
+  ui:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - host: opencost.localhost
+          paths:
+            - /
+
+  # Network egress rates aren't covered by the same illegal-pricing fallback that
+  # backfills CPU/RAM (see CostModel warning logs) — set explicitly, same on-prem
+  # defaults OpenCost documents (GCP us-central1-based baseline, provider="custom").
+  customPricing:
+    enabled: true
+    costModel:
+      description: "On-prem defaults, explicit so network egress rates load"
+      CPU: "0.031611"
+      spotCPU: "0.006655"
+      RAM: "0.004237"
+      spotRAM: "0.000892"
+      storage: "0.00005479452"
+      zoneNetworkEgress: "0.01"
+      regionNetworkEgress: "0.01"
+      internetNetworkEgress: "0.12"

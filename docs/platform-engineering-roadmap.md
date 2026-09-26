@@ -49,7 +49,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | OpenTelemetry Operator + auto-instrumentation | Covered — `5_otel-instrumentation/` | — |
 | Kafka + trace context propagation | Covered — `6_kafka-otel-tracing/` | — |
 | Alerting examples / SLOs | Partial — add examples | Extend step 4 or `observability/` |
-| **Thanos** — Prometheus HA + long-term metrics on object storage | Planned | `observability/` |
+| **Thanos** — Prometheus HA + long-term metrics on object storage | Covered — [`11_thanos/`](../11_thanos/) | — |
 | **Elasticsearch** — logs/docs, index templates, ILM / mappings | Planned | `observability/` |
 
 ### 4. Delivery & GitOps
@@ -109,6 +109,14 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | DORA-style metrics / platform adoption notes | Planned | Docs + optional Grafana dashboard |
 | SLOs & error budgets | Planned | `observability/` |
 
+### 9. Chaos engineering & AIOps
+
+**Why it matters:** Platforms need to prove failure modes are understood, not just monitored — root-cause analysis and fault injection close the loop between observability and reliability.
+
+| Tools | Sandbox status | Suggested folder |
+| :--- | :--- | :--- |
+| [coroot/rca-lab](https://github.com/coroot/rca-lab) — chaos injection + RCA benchmark scenarios on k8s | Planned | `rca-labs/` |
+
 ### Infrastructure as Code (supporting track)
 
 | Tools | Sandbox status | Suggested folder |
@@ -131,12 +139,14 @@ Done (Kind lab spine)
 7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
 8. 8_github-actions/              → GitHub Actions CI → GHCR, multi-arch
 9. 9_gitops-argocd/               → ArgoCD + Image Updater + promotion gate (dev auto, uat/prod gated)
+10. 10_opencost-cost-analysis/    → Kubernetes cost allocation on step 4's Prometheus
+11. 11_thanos/                    → Thanos long-term storage on step 4's Prometheus
 
 Next capability areas
-10. security/                     → RBAC, policy, secrets
-11. observability/                → Thanos + Elasticsearch (optional scale-out)
-12. idp/                          → Backstage (minimal)
-13. terraform/                    → IaC foundations
+12. security/                     → RBAC, policy, secrets
+13. observability/                → Elasticsearch (optional scale-out)
+14. idp/                          → Backstage (minimal)
+15. terraform/                    → IaC foundations
 ```
 
 ---

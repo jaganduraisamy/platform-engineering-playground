@@ -19,6 +19,21 @@ spec:
         limit_mib: 256
       batch: {}
 
+    # spanmetrics connector: derives RED metrics (calls_total, duration
+    # histogram) from every trace span it sees on the traces pipeline below,
+    # then re-injects them as a metrics pipeline input — no app code change,
+    # no extra scrape target (reuses the same `prometheus` exporter/job
+    # step 4 already scrapes as `otel-collector`).
+    connectors:
+      span_metrics:
+        histogram:
+          explicit:
+            buckets: [2ms, 8ms, 20ms, 50ms, 100ms, 200ms, 500ms, 1s, 2s, 5s]
+        dimensions:
+          - name: http.method
+          - name: http.status_code
+        metrics_flush_interval: 15s
+
     exporters:
       otlp/tempo:
         endpoint: tempo.observability.svc.cluster.local:4317
@@ -33,11 +48,15 @@ spec:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [debug,otlp/tempo]
+          exporters: [debug,otlp/tempo,span_metrics]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
           exporters: [debug,prometheus]
+        metrics/spanmetrics:
+          receivers: [span_metrics]
+          processors: [batch]
+          exporters: [prometheus]
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
