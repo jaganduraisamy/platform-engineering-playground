@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-store-gateway
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thanos-store-gateway
+  template:
+    metadata:
+      labels:
+        app: thanos-store-gateway
+    spec:
+      containers:
+        - name: thanos-store-gateway
+          image: thanosio/thanos:v0.42.4
+          args:
+            - store
+            - --data-dir=/data
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            - --http-address=0.0.0.0:10902
+            - --grpc-address=0.0.0.0:10901
+          ports:
+            - name: http
+              containerPort: 10902
+            - name: grpc
+              containerPort: 10901
+          volumeMounts:
+            - name: thanos-objstore-config
+              mountPath: /etc/thanos
+            - name: store-index-cache
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: thanos-objstore-config
+          secret:
+            secretName: thanos-objstore-config
+        - name: store-index-cache
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thanos-store-gateway
+  namespace: observability
+spec:
+  selector:
+    app: thanos-store-gateway
+  ports:
+    - name: grpc
+      port: 10901
+      targetPort: 10901
+    - name: http
+      port: 10902
+      targetPort: 10902
+---
+# Compactor must stay a singleton: two instances racing on the same bucket
+# blocks would corrupt them mid-merge. strategy: Recreate guarantees the old
+# pod is fully gone before a new one starts, instead of briefly overlapping
+# like RollingUpdate does.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-compactor
+  namespace: observability
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: thanos-compactor
+  template:
+    metadata:
+      labels:
+        app: thanos-compactor
+    spec:
+      containers:
+        - name: thanos-compactor
+          image: thanosio/thanos:v0.42.4
+          args:
+            - compact
+            - --data-dir=/data
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            - --http-address=0.0.0.0:10902
+            - --wait
+            - --wait-interval=30m
+            - --retention.resolution-raw=30d
+            - --retention.resolution-5m=120d
+            - --retention.resolution-1h=1y
+          ports:
+            - name: http
+              containerPort: 10902
+          volumeMounts:
+            - name: thanos-objstore-config
+              mountPath: /etc/thanos
+            - name: compactor-work-dir
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: thanos-objstore-config
+          secret:
+            secretName: thanos-objstore-config
+        - name: compactor-work-dir
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-query
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thanos-query
+  template:
+    metadata:
+      labels:
+        app: thanos-query
+    spec:
+      containers:
+        - name: thanos-query
+          image: thanosio/thanos:v0.42.4
+          args:
+            - query
+            - --http-address=0.0.0.0:10902
+            - --grpc-address=0.0.0.0:10901
+            - --query.replica-label=replica
+            - --query.auto-downsampling
+            - --endpoint=dnssrv+_grpc._tcp.thanos-sidecar.observability.svc.cluster.local
+            - --endpoint=dnssrv+_grpc._tcp.thanos-store-gateway.observability.svc.cluster.local
+          ports:
+            - name: http
+              containerPort: 10902
+            - name: grpc
+              containerPort: 10901
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thanos-query
+  namespace: observability
+spec:
+  selector:
+    app: thanos-query
+  ports:
+    - name: http
+      port: 10902
+      targetPort: 10902
+    - name: grpc
+      port: 10901
+      targetPort: 10901

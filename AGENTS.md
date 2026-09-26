@@ -21,7 +21,7 @@ Purpose: This repository is a personal self-study sandbox for platform engineeri
   - Numbered labs `1_*` … `N_*` for the Kind / delivery experiment spine (`7_kustomize-webapp/`, `8_github-actions/`; GHA workflow YAML stays under `.github/workflows/`)
   - `gitops/` for ArgoCD (consumes CI image tags + Kustomize overlays)
   - `security/` for Vault, sealed-secrets, RBAC and policy
-  - `observability/` for Thanos / Elasticsearch scale-out
+  - `observability/` for Elasticsearch scale-out (Thanos is covered — `11_thanos/`)
   - `idp/` for Backstage / developer portals
   - `terraform/` for IaC experiments
   - `docs/` for runbooks, roadmap, and competency coverage notes
