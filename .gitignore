@@ -5,6 +5,9 @@ graphify-out/
 docs/cnpa-syllabus-alignment.md
 docs/interview-notes/
 
+# Claude Code local config/skills (not for public remote)
+.claude/
+
 # Java / Maven build output
 **/target/
 *.class
