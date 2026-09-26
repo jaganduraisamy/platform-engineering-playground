@@ -49,7 +49,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | OpenTelemetry Operator + auto-instrumentation | Covered — `5_otel-instrumentation/` | — |
 | Kafka + trace context propagation | Covered — `6_kafka-otel-tracing/` | — |
 | Alerting examples / SLOs | Partial — add examples | Extend step 4 or `observability/` |
-| **Thanos** — Prometheus HA + long-term metrics on object storage | Planned | `observability/` |
+| **Thanos** — Prometheus HA + long-term metrics on object storage | Covered — [`11_thanos/`](../11_thanos/) | — |
 | **Elasticsearch** — logs/docs, index templates, ILM / mappings | Planned | `observability/` |
 
 ### 4. Delivery & GitOps
@@ -129,13 +129,15 @@ Done (Kind lab spine)
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
 8. 8_github-actions/              → GitHub Actions CI → GHCR (workflow in .github/)
+10. 10_opencost-cost-analysis/    → Kubernetes cost allocation on step 4's Prometheus
+11. 11_thanos/                    → Thanos long-term storage on step 4's Prometheus
 
 Next capability areas
 9.  gitops/                       → ArgoCD GitOps (deploy sha tags into overlays)
-10. security/                     → RBAC, policy, secrets
-11. observability/                → Thanos + Elasticsearch (optional scale-out)
-12. idp/                          → Backstage (minimal)
-13. terraform/                    → IaC foundations
+12. security/                     → RBAC, policy, secrets
+13. observability/                → Elasticsearch (optional scale-out)
+14. idp/                          → Backstage (minimal)
+15. terraform/                    → IaC foundations
 ```
 
 ---
