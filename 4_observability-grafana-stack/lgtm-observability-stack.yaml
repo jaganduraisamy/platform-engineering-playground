@@ -246,6 +246,18 @@ spec:
         app: prometheus
     spec:
       serviceAccountName: prometheus
+      # Prometheus's image defaults to uid 65534 (nobody); thanosio/thanos
+      # defaults to a different uid (1001). Thanos Sidecar ships blocks by
+      # hard-linking Prometheus's chunk files (not copying), and Linux's
+      # protected_hardlinks default blocks hard-linking to a file you don't
+      # own even on the same filesystem/volume — pinning both containers to
+      # the same uid is what actually fixes the "operation not permitted"
+      # sidecar upload error (a disk-vs-tmpfs volume type was NOT the cause,
+      # despite how it first looked).
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
       containers:
         - name: prometheus
           image: prom/prometheus:v2.54.1
@@ -256,9 +268,11 @@ spec:
             # compaction so blocks are cut on a fixed cadence for Thanos
             # Sidecar/Compactor to own instead (production default is 2h;
             # shortened here so 11_thanos/'s lab actually sees blocks land
-            # in MinIO within minutes instead of hours).
-            - --storage.tsdb.min-block-duration=30m
-            - --storage.tsdb.max-block-duration=30m
+            # in MinIO within minutes instead of hours). 10m + Prometheus's
+            # own ~1.5x-before-first-cut behavior means the first block
+            # lands roughly 15 min after Prometheus starts, not 45.
+            - --storage.tsdb.min-block-duration=10m
+            - --storage.tsdb.max-block-duration=10m
           ports:
             - containerPort: 9090
           volumeMounts:
@@ -298,10 +312,15 @@ spec:
         # Thanos Sidecar ships blocks via hard link, not copy (see 11_thanos/README.md).
         # A disk-backed emptyDir on this Kind/fuse-overlayfs setup returns EPERM on
         # hard link; tmpfs (medium: Memory) is a real Linux fs and supports it.
+        # 512Mi filled up within ~45m at this lab's cardinality (compaction
+        # needs room for the sealed block AND the still-live head at once);
+        # 2Gi gives headroom, but this is still tmpfs = counts against node
+        # RAM and vanishes on pod restart. Not a real fix for scale, just
+        # enough for the lab to actually see a block ship to MinIO.
         - name: prometheus-data
           emptyDir:
             medium: Memory
-            sizeLimit: 512Mi
+            sizeLimit: 2Gi
         - name: thanos-objstore-config
           secret:
             secretName: thanos-objstore-config
