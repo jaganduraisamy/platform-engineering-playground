@@ -6,8 +6,8 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 
 ## How To Use This List
 
-- Treat numbered folders `1_*` … `6_*` as the completed Kind lab spine — do not renumber them for certifications.
-- Pick the next **capability track** below; add a folder when you start (`gitops/`, `security/`, etc.).
+- Treat numbered folders `1_*` … `9_*` as the completed Kind lab spine — do not renumber them for certifications.
+- Pick the next **capability track** below; add a folder when you start (`9_gitops-argocd/`, `security/`, etc.).
 - After each experiment, note what broke and how you fixed it.
 
 ---
@@ -60,9 +60,10 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | :--- | :--- | :--- |
 | Git as source of truth | Covered — this repo | — |
 | Local image registry workflow | Covered — `localhost:5001` in step 6; Kind `load` in step 7 | — |
-| **GitHub Actions** — CI: build, publish to GHCR | Covered (base) — welcome-webapp → GHCR `sha-*` | [`8_github-actions/`](../8_github-actions/) |
-| Build once, deploy many + **approval gates** | Partial — overlays ready; promote/approvals next | steps 7–8 + `gitops/` |
-| **ArgoCD** — declarative sync | Planned — pin GHCR `sha-*` into step 7 overlays | `gitops/` |
+| **GitHub Actions** — CI: build multi-arch (amd64+arm64), publish to GHCR | Covered — welcome-webapp → GHCR `sha-*` + floating `latest` | [`8_github-actions/`](../8_github-actions/) |
+| Build once, deploy many + **approval gates** | Covered (dev/uat/prod) — solo-compatible gate (deliberate trigger + automated tag/render checks in CI), not peer review (GitHub blocks self-approval on both PR review and Environment required-reviewers) | [`9_gitops-argocd/promote-overlay.yml`](../.github/workflows/promote-overlay.yml) |
+| **ArgoCD** — declarative sync | Covered — controller + 3 `Application`s (dev auto-sync, uat/prod gated) | [`9_gitops-argocd/`](../9_gitops-argocd/) |
+| **Image Updater** — auto-detect new builds, write back to Git | Covered (dev only) — tracks GHCR `:latest` digest, commits `.argocd-source-*.yaml` override | [`9_gitops-argocd/image-updater.yaml`](../9_gitops-argocd/image-updater.yaml) |
 | Progressive delivery (canary / blue-green) | Planned (optional) | With Gateway API / mesh |
 
 ### 5. Platform APIs & self-service
@@ -72,7 +73,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Tools | Sandbox status | Suggested folder |
 | :--- | :--- | :--- |
 | Operators + CRDs (consume) | Partial — OTel Operator / Instrumentation CR | — |
-| Custom CRDs or Crossplane compositions (light) | Planned | `platform-apis/` or under `gitops/` |
+| Custom CRDs or Crossplane compositions (light) | Planned | `platform-apis/` or under `9_gitops-argocd/` |
 | Reconciliation loop literacy | Partial — observe controllers in Kind | Docs + labs |
 
 ### 6. Security & conformance
@@ -108,6 +109,14 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | DORA-style metrics / platform adoption notes | Planned | Docs + optional Grafana dashboard |
 | SLOs & error budgets | Planned | `observability/` |
 
+### 9. Chaos engineering & AIOps
+
+**Why it matters:** Platforms need to prove failure modes are understood, not just monitored — root-cause analysis and fault injection close the loop between observability and reliability.
+
+| Tools | Sandbox status | Suggested folder |
+| :--- | :--- | :--- |
+| [coroot/rca-lab](https://github.com/coroot/rca-lab) — chaos injection + RCA benchmark scenarios on k8s | Planned | `rca-labs/` |
+
 ### Infrastructure as Code (supporting track)
 
 | Tools | Sandbox status | Suggested folder |
@@ -128,12 +137,12 @@ Done (Kind lab spine)
 5. 5_otel-instrumentation/        → OTel auto-instrumentation
 6. 6_kafka-otel-tracing/          → async + distributed tracing
 7. 7_kustomize-webapp/            → Kustomize overlays (one image, env-specific config)
-8. 8_github-actions/              → GitHub Actions CI → GHCR (workflow in .github/)
+8. 8_github-actions/              → GitHub Actions CI → GHCR, multi-arch
+9. 9_gitops-argocd/               → ArgoCD + Image Updater + promotion gate (dev auto, uat/prod gated)
 10. 10_opencost-cost-analysis/    → Kubernetes cost allocation on step 4's Prometheus
 11. 11_thanos/                    → Thanos long-term storage on step 4's Prometheus
 
 Next capability areas
-9.  gitops/                       → ArgoCD GitOps (deploy sha tags into overlays)
 12. security/                     → RBAC, policy, secrets
 13. observability/                → Elasticsearch (optional scale-out)
 14. idp/                          → Backstage (minimal)
