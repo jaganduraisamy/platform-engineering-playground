@@ -6,41 +6,23 @@ Full study roadmap (what's covered vs. planned): [docs/platform-engineering-road
 
 ## Tools covered, by folder
 
-| Tool / Pattern | Category | Folder |
-| :--- | :--- | :--- |
-| Kind, kubectl | Cluster foundation | [1_kind-cluster/](1_kind-cluster/) |
-| Multi-service app on K8s (Deployments, Services, namespaces) | Workloads | [2_kodekloud-voting-app/](2_kodekloud-voting-app/) |
-| Ingress NGINX | Networking | [3_networking/ingress-nginx/](3_networking/ingress-nginx/) |
-| Prometheus, Grafana, Loki, Tempo, Promtail (LGTM stack) | Observability | [4_observability-grafana-stack/](4_observability-grafana-stack/) |
-| OpenTelemetry Operator + auto-instrumentation | Observability / tracing | [5_otel-instrumentation/](5_otel-instrumentation/) |
-| Kafka (KRaft mode) + trace context propagation | Messaging / tracing | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) |
-| Kustomize overlays (one image, per-env config) | Delivery | [7_kustomize-webapp/](7_kustomize-webapp/) |
-| GitHub Actions — multi-arch build, publish to GHCR | CI | [8_github-actions/](8_github-actions/) |
-| ArgoCD + Image Updater — GitOps, promotion gates | GitOps | [9_gitops-argocd/](9_gitops-argocd/) |
-| OpenCost — Kubernetes cost allocation | Cost | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) |
-| Thanos + MinIO — Prometheus long-term storage, global query | Observability | [11_thanos/](11_thanos/) |
+Everything runs on one Kind cluster, numbered in the order I built them. Steps 10 and 11 only need steps 1, 3, and 4 — skip step 9 if GitOps isn't what you're after.
+
+| Step | Tool / Pattern | Folder | Deploy | Uninstall |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | Kind, kubectl | [1_kind-cluster/](1_kind-cluster/) | `./create-cluster.sh` | `./uninstall-cluster.sh` |
+| **2** | Multi-service app on K8s (Deployments, Services, namespaces) | [2_kodekloud-voting-app/](2_kodekloud-voting-app/) | `kubectl apply -f deployment.yaml` | `./uninstall-app.sh` |
+| **3** | Ingress NGINX | [3_networking/ingress-nginx/](3_networking/ingress-nginx/) | `./deploy-ingress.sh` | `./uninstall-ingress.sh` |
+| **4** | Prometheus, Grafana, Loki, Tempo, Promtail (LGTM stack) | [4_observability-grafana-stack/](4_observability-grafana-stack/) | `./deploy-observability.sh` | `./uninstall-observability.sh` |
+| **5** | OpenTelemetry Operator + auto-instrumentation | [5_otel-instrumentation/](5_otel-instrumentation/) | `./deploy-otel.sh` | `./uninstall-otel.sh` |
+| **6** | Kafka (KRaft mode) + trace context propagation | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) | `./deploy-kafka.sh` | `./uninstall-kafka.sh` |
+| **7** | Kustomize overlays (one image, per-env config) | [7_kustomize-webapp/](7_kustomize-webapp/) | `./deploy-webapp.sh dev` | `./uninstall-webapp.sh` |
+| **8** | GitHub Actions — multi-arch build, publish to GHCR | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
+| **9** | ArgoCD + Image Updater — GitOps, promotion gates | [9_gitops-argocd/](9_gitops-argocd/) | `./install-argocd.sh` + `./install-image-updater.sh` | `./uninstall-argocd.sh` + `./uninstall-image-updater.sh` |
+| **10** | OpenCost — Kubernetes cost allocation | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
+| **11** | Thanos + MinIO — Prometheus long-term storage, global query | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
 
 Not a lab yet, but on deck — RBAC/policy/secrets, Elasticsearch, Backstage, Terraform: see the roadmap doc above.
-
-## How it fits together
-
-Everything runs on one Kind cluster, numbered in the order I built them:
-
-| Step | Folder | Deploy | Uninstall |
-| :--- | :--- | :--- | :--- |
-| **1** | [1_kind-cluster/](1_kind-cluster/) | `./create-cluster.sh` | `./uninstall-cluster.sh` |
-| **2** | [2_kodekloud-voting-app/](2_kodekloud-voting-app/) | `kubectl apply -f deployment.yaml` | `./uninstall-app.sh` |
-| **3** | [3_networking/ingress-nginx/](3_networking/ingress-nginx/) | `./deploy-ingress.sh` | `./uninstall-ingress.sh` |
-| **4** | [4_observability-grafana-stack/](4_observability-grafana-stack/) | `./deploy-observability.sh` | `./uninstall-observability.sh` |
-| **5** | [5_otel-instrumentation/](5_otel-instrumentation/) | `./deploy-otel.sh` | `./uninstall-otel.sh` |
-| **6** | [6_kafka-otel-tracing/](6_kafka-otel-tracing/) | `./deploy-kafka.sh` | `./uninstall-kafka.sh` |
-| **7** | [7_kustomize-webapp/](7_kustomize-webapp/) | `./deploy-webapp.sh dev` | `./uninstall-webapp.sh` |
-| **8** | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
-| **9** | [9_gitops-argocd/](9_gitops-argocd/) | `./install-argocd.sh` + `./install-image-updater.sh` | `./uninstall-argocd.sh` + `./uninstall-image-updater.sh` |
-| **10** | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
-| **11** | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
-
-Steps 10 and 11 only need steps 1, 3, and 4 — you can skip step 9 if GitOps isn't what you're after.
 
 ## Quick start
 
