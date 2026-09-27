@@ -24,36 +24,7 @@ Everything runs on one Kind cluster, numbered in the order I built them. Steps 1
 
 Not a lab yet, but on deck — RBAC/policy/secrets, Elasticsearch, Backstage, Terraform: see the roadmap doc above.
 
-## Quick start
-
-```bash
-cd 1_kind-cluster && ./create-cluster.sh
-cd ../2_kodekloud-voting-app && kubectl apply -f deployment.yaml
-cd ../3_networking/ingress-nginx && ./deploy-ingress.sh
-cd ../../4_observability-grafana-stack && ./deploy-observability.sh
-cd ../5_otel-instrumentation && ./deploy-otel.sh
-cd ../6_kafka-otel-tracing && ./deploy-kafka.sh
-cd ../7_kustomize-webapp && ./deploy-webapp.sh dev
-cd ../8_github-actions && ./validate-ci-local.sh
-cd ../9_gitops-argocd && ./install-argocd.sh && kubectl apply -f apps/
-cd ../10_opencost-cost-analysis && ./install-opencost.sh
-cd ../11_thanos && ./deploy-thanos.sh
-```
-
-## Teardown (reverse order)
-
-```bash
-cd 11_thanos && ./uninstall-thanos.sh
-cd ../10_opencost-cost-analysis && ./uninstall-opencost.sh
-cd ../9_gitops-argocd && ./uninstall-image-updater.sh && ./uninstall-argocd.sh
-cd ../7_kustomize-webapp && ./uninstall-webapp.sh
-cd ../6_kafka-otel-tracing && ./uninstall-kafka.sh
-cd ../5_otel-instrumentation && ./uninstall-otel.sh
-cd ../4_observability-grafana-stack && ./uninstall-observability.sh
-cd ../3_networking/ingress-nginx && ./uninstall-ingress.sh
-cd ../../2_kodekloud-voting-app && ./uninstall-app.sh
-cd ../1_kind-cluster && ./uninstall-cluster.sh
-```
+Run steps in order (each `cd`s into its folder and runs the Deploy command above); tear down in reverse with the Uninstall command.
 
 ## Why this exists
 
