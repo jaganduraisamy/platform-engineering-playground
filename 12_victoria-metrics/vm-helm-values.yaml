@@ -1,0 +1,20 @@
+# victoria-metrics-single chart values — homelab single-node TSDB.
+# fullnameOverride pins the Service/StatefulSet name so step 4's Prometheus
+# remote_write and Grafana datasource URLs (vmsingle.observability...) don't
+# depend on the Helm release name.
+server:
+  fullnameOverride: vmsingle
+  retentionPeriod: "10d"
+  # emptyDir instead of a PVC — matches this repo's convention of ephemeral
+  # storage for every LGTM component except MinIO (see 11_thanos/README.md);
+  # fine for a homelab where the point is remote_write/query wiring, not
+  # surviving a pod restart.
+  persistentVolume:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
