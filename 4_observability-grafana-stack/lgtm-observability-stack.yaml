@@ -288,13 +288,19 @@ spec:
         # step 4 deployable standalone on a fresh cluster).
         - name: thanos-sidecar
           image: thanosio/thanos:v0.42.4
+          # Idle until 11_thanos/ creates the thanos-objstore-config Secret
+          # (the optional volume then fills in without a pod restart), so a
+          # standalone step 4 keeps Prometheus 2/2 Ready.
+          command: ["/bin/sh", "-c"]
           args:
-            - sidecar
-            - --tsdb.path=/prometheus
-            - --prometheus.url=http://localhost:9090
-            - --objstore.config-file=/etc/thanos/objstore.yml
-            - --http-address=0.0.0.0:10902
-            - --grpc-address=0.0.0.0:10901
+            - |
+              until [ -f /etc/thanos/objstore.yml ]; do sleep 5; done
+              exec thanos sidecar \
+                --tsdb.path=/prometheus \
+                --prometheus.url=http://localhost:9090 \
+                --objstore.config-file=/etc/thanos/objstore.yml \
+                --http-address=0.0.0.0:10902 \
+                --grpc-address=0.0.0.0:10901
           ports:
             - name: http
               containerPort: 10902
