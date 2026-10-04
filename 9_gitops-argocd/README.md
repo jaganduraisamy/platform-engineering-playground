@@ -14,7 +14,7 @@ Install the ArgoCD controller and hand it the 3 namespaces already deployed manu
 
 - Kind cluster running: [../1_kind-cluster/](../1_kind-cluster/)
 - Overlays pinned to a real image: [../7_kustomize-webapp/kustomize/overlays/](../7_kustomize-webapp/kustomize/overlays/) — each `kustomization.yaml` `images:` block points at `ghcr.io/jaganduraisamy/welcome-webapp:sha-*` (public package, no pull secret needed)
-- CI image published: [../8_github-actions/](../8_github-actions/) → [package page](https://github.com/jaganduraisamy/platform-engineering-sandbox/pkgs/container/welcome-webapp)
+- CI image published: [../8_github-actions/](../8_github-actions/) → [package page](https://github.com/jaganduraisamy/platform-engineering-playground/pkgs/container/welcome-webapp)
 
 ```bash
 kubectl config current-context   # kind-home-k8-cluster
@@ -119,7 +119,7 @@ chmod +x install-image-updater.sh uninstall-image-updater.sh
 Fine-grained PAT, scoped to just this repo:
 
 1. GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token.
-2. Repository access: only `platform-engineering-sandbox`.
+2. Repository access: only `platform-engineering-playground`.
 3. Permissions: **Contents: Read and write**. Nothing else.
 
 ```bash

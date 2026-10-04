@@ -7,5 +7,5 @@ resources:
 labels:
   - pairs:
       app.kubernetes.io/name: welcome-webapp
-      app.kubernetes.io/part-of: platform-engineering-sandbox
+      app.kubernetes.io/part-of: platform-engineering-playground
     includeSelectors: false

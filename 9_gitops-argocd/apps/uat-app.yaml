@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/jaganduraisamy/platform-engineering-sandbox.git
+    repoURL: https://github.com/jaganduraisamy/platform-engineering-playground.git
     targetRevision: lab/gitops-argocd # TODO: switch to main once merged
     path: 7_kustomize-webapp/kustomize/overlays/uat
   destination:
