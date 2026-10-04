@@ -39,7 +39,7 @@ Core components:
 
 What I actually hit building this in a homelab:
 
-- Ran the full stack on Kind cluster, code and configs here: github.com/jaganduraisamy/platform-engineering-sandbox, branch docs/thanos-notes, folder 11_thanos
+- Ran the full stack on Kind cluster, code and configs here: github.com/jaganduraisamy/platform-engineering-playground, branch docs/thanos-notes, folder 11_thanos
 - Local setup: Prometheus cuts a block every 10 minutes (lab-shortened from the 2h production default), Sidecar ships each sealed block to a MinIO bucket named thanos, Compactor keeps raw data 30 days, 5m rollups 120 days, 1h rollups 1 year, and Querier ties Sidecar plus Store Gateway together with replica-label dedup and auto-downsampling turned on
 - Blocks refused to upload for days. Root cause: Sidecar ships blocks via hard link, not copy, and Prometheus + Sidecar were running as different Linux users. Linux blocks a hard link to a file you do not own by default, so every upload silently failed. Fixed by pinning both containers to the same user.
 - This is not in any getting started guide, only shows up once you actually run it

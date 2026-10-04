@@ -1,4 +1,4 @@
-# platform-engineering-sandbox
+# platform-engineering-playground
 
 A personal homelab for platform engineering — one Kind cluster, one numbered folder per tool, built up incrementally as I learn each piece. If you're evaluating a tool and want to see it wired into an actual stack (not just a "hello world"), find it in the table below and go straight to that folder — each one has its own README with what it does, why it's there, and exact start/validate/cleanup commands.
 
