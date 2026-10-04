@@ -50,6 +50,7 @@ Aligned with [AGENTS.md](../AGENTS.md): one experiment at a time, README with st
 | Kafka + trace context propagation | Covered — `6_kafka-otel-tracing/` | — |
 | Alerting examples / SLOs | Partial — add examples | Extend step 4 or `observability/` |
 | **Thanos** — Prometheus HA + long-term metrics on object storage | Covered — [`11_thanos/`](../11_thanos/) | — |
+| **VictoriaMetrics** — alt. long-term metrics, single-node + cluster mode | Covered — [`12_victoria-metrics/`](../12_victoria-metrics/) | — |
 | **Elasticsearch** — logs/docs, index templates, ILM / mappings | Planned | `observability/` |
 
 ### 4. Delivery & GitOps
@@ -141,12 +142,13 @@ Done (Kind lab spine)
 9. 9_gitops-argocd/               → ArgoCD + Image Updater + promotion gate (dev auto, uat/prod gated)
 10. 10_opencost-cost-analysis/    → Kubernetes cost allocation on step 4's Prometheus
 11. 11_thanos/                    → Thanos long-term storage on step 4's Prometheus
+12. 12_victoria-metrics/          → VictoriaMetrics (vmsingle + cluster mode) as alt. long-term storage
 
 Next capability areas
-12. security/                     → RBAC, policy, secrets
-13. observability/                → Elasticsearch (optional scale-out)
-14. idp/                          → Backstage (minimal)
-15. terraform/                    → IaC foundations
+13. security/                     → RBAC, policy, secrets
+14. observability/                → Elasticsearch (optional scale-out)
+15. idp/                          → Backstage (minimal)
+16. terraform/                    → IaC foundations
 ```
 
 ---

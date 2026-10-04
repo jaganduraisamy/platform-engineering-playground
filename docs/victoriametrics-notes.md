@@ -16,13 +16,13 @@ Same three Prometheus limits as [thanos-notes.md](thanos-notes.md) — bounded l
 
 ## What VM actually is
 
-A single Go binary (`victoria-metrics`) that is simultaneously: a `remote_write` receiver, a time-series database, and a PromQL-compatible query API — no separate ingester/store/querier processes needed at single-node scale. The cluster variant (`victoria-metrics-cluster`, not used in this lab) splits that binary into three roles that scale independently:
+A single Go binary (`victoria-metrics`) that is simultaneously: a `remote_write` receiver, a time-series database, and a PromQL-compatible query API — no separate ingester/store/querier processes needed at single-node scale. The cluster variant splits that binary into three roles that scale independently:
 
 - **`vminsert`** — stateless, receives `remote_write`, shards samples across `vmstorage` nodes by series hash
 - **`vmstorage`** — stateful, owns a shard of the data, no cross-talk between storage nodes
 - **`vmselect`** — stateless, fans a query out to every relevant `vmstorage`, merges results
 
-This lab uses `victoria-metrics-single` — the single-binary form — since the data volume (one homelab Prometheus + spanmetrics from one demo app) never approaches the point clustering pays for itself.
+This repo's data volume (one homelab Prometheus + spanmetrics from one demo app) never approaches the point clustering pays for itself operationally — [12_victoria-metrics/](../12_victoria-metrics/) runs both modes side by side anyway, specifically so each cluster-mode role can be seen and queried directly, the same pedagogical reason 11_thanos stood up every Thanos component even though step 4 only runs one Prometheus. Both single-node and cluster manifests are hand-written, not Helm charts (see [12_victoria-metrics/README.md](../12_victoria-metrics/README.md) for why) — every `vminsert`/`vmstorage`/`vmselect` flag (`-replicationFactor`, `-dedup.minScrapeInterval`, `-storageNode`) is visible in [vm-cluster-stack.yaml](../12_victoria-metrics/vm-cluster-stack.yaml) rather than behind chart defaults.
 
 ## Storage engine: why VM claims better compression and lower RAM than Prometheus's own TSDB
 
@@ -51,10 +51,11 @@ VM's query language is a superset of PromQL — every PromQL query this repo's G
 | Step 4 Prometheus | Gains a `remote_write` target; keeps scraping and keeps its own (short-retention, tmpfs-backed) local TSDB exactly as before — VM is additive, not a replacement, in this lab's wiring |
 | Step 4 Grafana | Gains a `VictoriaMetrics` datasource, `type: prometheus` — same PromQL panels work against either datasource, proving query-layer compatibility |
 | Step 5 OTel Collector + spanmetrics connector | Unmodified — already exposes `traces_span_metrics_calls_total`/`duration_*` on its `:9464` Prometheus exporter; Prometheus's existing `otel-collector` scrape job is what actually feeds VM, via the new remote_write hop |
-| Step 11 Thanos Sidecar | Runs in parallel, untouched — same Prometheus pod ships blocks to MinIO (object storage, sealed blocks) *and* streams live samples to VM (remote_write, all samples) at the same time. Two independent long-term-storage strategies coexisting on one Prometheus, which is itself a demonstration of `remote_write`'s decoupling: neither consumer knows or cares that the other exists |
+| Step 11 Thanos | Torn down on this cluster (`11_thanos/uninstall-thanos.sh` + the orphaned `thanos-sidecar` container/Service removed from step 4's file) once VM became the active long-term-storage backend — the manifests still exist and are independently re-deployable, but running Thanos and VM's full stack together wasn't worth the homelab resource budget. Both labs remain additive-only patches to the same step 4 file, so switching back is a re-apply away |
 
 ## Known caveats (of the comparison itself, not just this lab)
 
 - VM's compression/RAM advantages over Prometheus's TSDB are real and documented, but the magnitude is workload-dependent; this lab's traffic volume (a few hundred synthetic votes) is too small to observe the difference meaningfully — the point here is proving the wiring, not benchmarking storage efficiency.
 - MetricsQL's PromQL superset status means the common path (this lab's queries) is safe, but a query using very obscure PromQL edge-case semantics is the kind of thing worth testing before treating "MetricsQL is PromQL" as absolute.
-- This doc compares VM single-node vs. Prometheus+Thanos as deployed in this repo — it does not cover VM Cluster's own operational tradeoffs (shard rebalancing, `vmstorage` node loss behavior), since [12_victoria-metrics/](../12_victoria-metrics/) doesn't deploy the cluster variant.
+- VM Cluster's own operational tradeoffs beyond what this lab exercises — shard rebalancing when a `vmstorage` node is added/removed, and real multi-AZ/multi-node failure behavior — aren't covered; 2 `vmstorage` replicas on one Kind node proves `-replicationFactor=2` writes to both, not what happens under real node loss.
+- VM cluster mode has no DNS-SRV auto-discovery the way Thanos Query's `--endpoint=dnssrv+_grpc._tcp...` does ([thanos-notes.md](thanos-notes.md)'s best-practices section) — `vminsert`/`vmselect` address each `vmstorage` replica by static per-pod DNS name (`-storageNode` flags), so adding a 3rd replica means editing those flags on both, not just scaling the StatefulSet. A real regression vs. Thanos's service-discovery story, worth knowing before assuming VM cluster mode scales as transparently.

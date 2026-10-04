@@ -1,0 +1,73 @@
+# vmsingle, hand-written — replaces the victoria-metrics-single Helm chart
+# this step started with. Same reason vm-cluster-stack.yaml isn't a chart:
+# the args/probes/volumes stay visible here instead of behind chart defaults.
+# Spec matches what `helm template victoria-metrics/victoria-metrics-single
+# -f vm-helm-values.yaml` actually rendered, so swapping to this manifest
+# changes nothing at runtime — same image, same flags, same Service name/port
+# that step 4's remote_write and Grafana datasource already point at.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vmsingle
+  namespace: observability
+spec:
+  serviceName: vmsingle
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmsingle
+  template:
+    metadata:
+      labels:
+        app: vmsingle
+    spec:
+      containers:
+        - name: vmsingle
+          image: victoriametrics/victoria-metrics:v1.153.0
+          args:
+            - --httpListenAddr=:8428
+            - --retentionPeriod=10d
+            - --storageDataPath=/storage
+          ports:
+            - name: http
+              containerPort: 8428
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: vmsingle-data
+              mountPath: /storage
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        # emptyDir, not a PVC — same convention as vm-cluster-stack.yaml and
+        # every other LGTM component except MinIO (11_thanos/README.md).
+        - name: vmsingle-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmsingle
+  namespace: observability
+spec:
+  clusterIP: None
+  selector:
+    app: vmsingle
+  ports:
+    - name: http
+      port: 8428
+      targetPort: 8428
