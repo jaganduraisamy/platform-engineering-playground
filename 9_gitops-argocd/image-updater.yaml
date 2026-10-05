@@ -19,4 +19,4 @@ spec:
       writeBackConfig:
         method: "git:secret:argocd/image-updater-git-creds"
         gitConfig:
-          branch: "lab/gitops-argocd" # TODO: switch to main once merged
+          branch: "main"
