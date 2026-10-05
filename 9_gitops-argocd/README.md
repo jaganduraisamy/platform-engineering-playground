@@ -58,7 +58,7 @@ kubectl -n argocd get applications
 
 Each `Application` takes over the namespace step 7's `deploy-webapp.sh` created manually — on first sync it flips the running Deployment from `welcome-webapp:local` to the pinned `ghcr.io/jaganduraisamy/welcome-webapp:sha-*` image. That's the manual→GitOps handover moment.
 
-**`targetRevision` currently points at `lab/gitops-argocd`** (this branch, since the config isn't merged yet) — switch all 3 to `main` once merged, or ArgoCD keeps tracking a branch that may get deleted.
+**`targetRevision` is `main`** for all 3 apps; Image Updater also writes back to `main`.
 
 Config lives in this repo (`9_gitops-argocd/apps/`, sourcing `7_kustomize-webapp/kustomize/overlays/`) rather than a separate `welcomeapp-gitops` repo — no cross-repo push credentials needed for a single-person sandbox. Revisit only if this needs its own RBAC/promotion boundary later.
 
