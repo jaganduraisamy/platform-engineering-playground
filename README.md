@@ -20,7 +20,7 @@ Everything runs on one Kind cluster, numbered in the order I built them. Steps 1
 | **8** | GitHub Actions — multi-arch build, publish to GHCR | [8_github-actions/](8_github-actions/) | `./validate-ci-local.sh` (workflow in `.github/`) | — |
 | **9** | ArgoCD + Image Updater — GitOps, promotion gates | [9_gitops-argocd/](9_gitops-argocd/) | `./install-argocd.sh` + `./install-image-updater.sh` | `./uninstall-argocd.sh` + `./uninstall-image-updater.sh` |
 | **10** | OpenCost — Kubernetes cost allocation | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
-| **11** | Thanos + MinIO — Prometheus long-term storage, global query | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
+| **11** | Thanos + SeaweedFS — Prometheus long-term storage, global query | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
 
 Not a lab yet, but on deck — RBAC/policy/secrets, Elasticsearch, Backstage, Terraform: see the roadmap doc above.
 

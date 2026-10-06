@@ -268,7 +268,7 @@ spec:
             # compaction so blocks are cut on a fixed cadence for Thanos
             # Sidecar/Compactor to own instead (production default is 2h;
             # shortened here so 11_thanos/'s lab actually sees blocks land
-            # in MinIO within minutes instead of hours). 10m + Prometheus's
+            # in SeaweedFS within minutes instead of hours). 10m + Prometheus's
             # own ~1.5x-before-first-cut behavior means the first block
             # lands roughly 15 min after Prometheus starts, not 45.
             - --storage.tsdb.min-block-duration=10m
@@ -283,7 +283,7 @@ spec:
         # Thanos Sidecar (11_thanos/): shares Prometheus's TSDB volume to
         # upload sealed blocks to object storage, and exposes StoreAPI so
         # Thanos Query can also read Prometheus's live/unshipped data.
-        # Harmless no-op container until 11_thanos/ deploys MinIO + the
+        # Harmless no-op container until 11_thanos/ deploys SeaweedFS + the
         # thanos-objstore-config Secret (`optional: true` below keeps
         # step 4 deployable standalone on a fresh cluster).
         - name: thanos-sidecar
@@ -322,7 +322,7 @@ spec:
         # needs room for the sealed block AND the still-live head at once);
         # 2Gi gives headroom, but this is still tmpfs = counts against node
         # RAM and vanishes on pod restart. Not a real fix for scale, just
-        # enough for the lab to actually see a block ship to MinIO.
+        # enough for the lab to actually see a block ship to the object store.
         - name: prometheus-data
           emptyDir:
             medium: Memory

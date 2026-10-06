@@ -1,0 +1,134 @@
+# S3-compatible object store for Thanos (single-node SeaweedFS: master + volume + filer + S3 gateway).
+# Replaces MinIO, whose public images (quay.io/minio/*) were withdrawn.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: seaweedfs-data
+  namespace: observability
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 2Gi
+---
+# Lab-only credentials (same trust level as the old minioadmin pair); not for real clusters.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: seaweedfs-s3-config
+  namespace: observability
+type: Opaque
+stringData:
+  s3.json: |
+    {
+      "identities": [
+        {
+          "name": "thanos",
+          "credentials": [{"accessKey": "thanosadmin", "secretKey": "thanosadmin"}],
+          "actions": ["Admin", "Read", "Write", "List"]
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seaweedfs
+  namespace: observability
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: seaweedfs
+  template:
+    metadata:
+      labels:
+        app: seaweedfs
+    spec:
+      containers:
+        - name: seaweedfs
+          image: chrislusf/seaweedfs:4.48
+          # 7 volumes x 256MB stays inside the 2Gi PVC.
+          args:
+            - server
+            - -dir=/data
+            - -master.volumeSizeLimitMB=256
+            - -volume.max=7
+            - -filer
+            - -s3
+            - -s3.config=/etc/seaweedfs/s3.json
+          ports:
+            - name: s3
+              containerPort: 8333
+            - name: filer
+              containerPort: 8888
+          readinessProbe:
+            tcpSocket:
+              port: 8333
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: s3-config
+              mountPath: /etc/seaweedfs
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: seaweedfs-data
+        - name: s3-config
+          secret:
+            secretName: seaweedfs-s3-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seaweedfs
+  namespace: observability
+spec:
+  selector:
+    app: seaweedfs
+  ports:
+    - name: s3
+      port: 8333
+      targetPort: 8333
+    - name: filer
+      port: 8888
+      targetPort: 8888
+---
+# Buckets are directories under /buckets in the filer; Thanos does not create its own bucket.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-thanos-bucket
+  namespace: observability
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-bucket
+          image: curlimages/curl:8.22.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until curl -sf -X POST "http://seaweedfs.observability.svc.cluster.local:8888/buckets/thanos/"; do sleep 3; done
+              echo "bucket thanos ready"
