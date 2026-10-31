@@ -51,12 +51,15 @@ spec:
       containers:
         - name: seaweedfs
           image: chrislusf/seaweedfs:4.48
-          # 7 volumes x 256MB stays inside the 2Gi PVC.
+          # -volume.max is a slot count, not a size. SeaweedFS grows volumes in
+          # batches, and at 7 slots it filled in ~24 days of Thanos blocks and
+          # every S3 call then timed out ("Not enough data nodes found").
+          # 20 x 256MB = 5GB max; local-path does not enforce the PVC size.
           args:
             - server
             - -dir=/data
             - -master.volumeSizeLimitMB=256
-            - -volume.max=7
+            - -volume.max=20
             - -filer
             - -s3
             - -s3.config=/etc/seaweedfs/s3.json
