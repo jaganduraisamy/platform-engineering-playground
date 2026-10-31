@@ -121,8 +121,8 @@ The only Thanos-specific costs on top of a plain Prometheus setup are: object st
 ## Mapping to this repo's existing stack
 
 We already run [step 4's observability stack](../4_observability-grafana-stack/) with a single Prometheus, no HA pair, and no object storage. A Thanos lab here would realistically demonstrate:
-- Sidecar + a local object-storage stand-in (MinIO) instead of a real cloud bucket
-- Store Gateway serving historical blocks back out of MinIO
+- Sidecar + a local object-storage stand-in (SeaweedFS, formerly MinIO) instead of a real cloud bucket
+- Store Gateway serving historical blocks back out of the object store
 - Querier as the new query entrypoint in front of Grafana (swap Grafana's datasource from `prometheus:9090` to `thanos-query:9090`)
 - Compactor doing downsampling, to actually see 5m/1h resolution blocks appear in the bucket
 
@@ -130,7 +130,7 @@ HA dedup and Receiver-based ingestion aren't really demonstrable with this repo'
 
 ## Built: [11_thanos/](../11_thanos/)
 
-The lab above is implemented, not just planned. Sidecar patched into step 4's Prometheus pod, MinIO standing in for object storage, Store Gateway, Compactor, Querier, Grafana repointed at a new `Thanos Query` datasource. Full component breakdown and best-practices callouts (Secret vs ConfigMap for objstore creds, Compactor's forced-singleton `strategy: Recreate`, MinIO as the one PVC-backed piece in this repo) are in [11_thanos/README.md](../11_thanos/README.md), not duplicated here.
+The lab above is implemented, not just planned. Sidecar patched into step 4's Prometheus pod, SeaweedFS (originally MinIO) standing in for object storage, Store Gateway, Compactor, Querier, Grafana repointed at a new `Thanos Query` datasource. Full component breakdown and best-practices callouts (Secret vs ConfigMap for objstore creds, Compactor's forced-singleton `strategy: Recreate`, MinIO as the one PVC-backed piece in this repo) are in [11_thanos/README.md](../11_thanos/README.md), not duplicated here.
 
 ### Verified: the live-query path works end to end
 
