@@ -20,18 +20,18 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: minio-console
+  name: seaweedfs-filer
   namespace: observability
 spec:
   ingressClassName: nginx
   rules:
-    - host: minio-console.localhost
+    - host: seaweedfs.localhost
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: minio
+                name: seaweedfs
                 port:
-                  number: 9001
+                  number: 8888

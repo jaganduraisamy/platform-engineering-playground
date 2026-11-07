@@ -93,9 +93,8 @@ spec:
             - --http-address=0.0.0.0:10902
             - --wait
             - --wait-interval=30m
-            - --retention.resolution-raw=30d
-            - --retention.resolution-5m=120d
-            - --retention.resolution-1h=1y
+            - --retention.resolution-raw=7d
+            - --downsampling.disable
           ports:
             - name: http
               containerPort: 10902

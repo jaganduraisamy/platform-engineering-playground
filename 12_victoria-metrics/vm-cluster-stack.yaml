@@ -4,12 +4,11 @@
 # than hidden behind chart defaults — the point of this file is the
 # component tour, not the shortest path to a running cluster.
 #
-# Runs ALONGSIDE vmsingle (Helm-deployed, 12_victoria-metrics/vm-helm-values.yaml),
-# not instead of it. vmsingle is this repo's actual Thanos replacement at its
-# current scale; this stack exists so vminsert/vmstorage/vmselect/vmalert can
-# be seen running as separate pods, the same reason 11_thanos stood up
-# Sidecar/Store Gateway/Compactor/Querier even though step 4 only runs one
-# Prometheus.
+# Cluster mode on purpose, not the single-binary vmsingle: vminsert,
+# vmstorage, vmselect and vmalert each run as their own pod so every role
+# can be seen, scaled and broken separately, the same reason 11_thanos stood
+# up Sidecar/Store Gateway/Compactor/Querier even though step 4 only runs
+# one Prometheus.
 #
 # vmstorage: the actual store. StatefulSet (not Deployment) because vminsert
 # and vmselect address each replica by its stable pod DNS name directly
@@ -42,7 +41,7 @@ spec:
             - --httpListenAddr=:8482
             - --vminsertAddr=:8400
             - --vmselectAddr=:8401
-            - --retentionPeriod=10d
+            - --retentionPeriod=7d
           ports:
             - name: http
               containerPort: 8482
@@ -62,7 +61,7 @@ spec:
               memory: 512Mi
       volumes:
         # emptyDir, not a PVC — matches this repo's convention (every LGTM
-        # component except MinIO, see 11_thanos/README.md); losing vmstorage
+        # component except SeaweedFS, see 11_thanos/README.md); losing vmstorage
         # data on pod restart is acceptable for a wiring-focused homelab lab.
         - name: vmstorage-data
           emptyDir: {}

@@ -20,9 +20,9 @@ kubectl config current-context
 kubectl -n "${OBS_NS}" get deploy/prometheus
 
 echo
-echo "==> Deploy MinIO (object storage stand-in) + create bucket"
-kubectl apply -f "${SCRIPT_DIR}/minio.yaml"
-kubectl -n "${OBS_NS}" rollout status deploy/minio --timeout=180s
+echo "==> Deploy SeaweedFS (object storage stand-in) + create bucket"
+kubectl apply -f "${SCRIPT_DIR}/seaweedfs.yaml"
+kubectl -n "${OBS_NS}" rollout status deploy/seaweedfs --timeout=180s
 kubectl -n "${OBS_NS}" wait --for=condition=complete job/create-thanos-bucket --timeout=120s
 
 echo
@@ -62,5 +62,5 @@ if [ "${health}" != "200" ]; then
 fi
 
 echo "OK — http://${THANOS_QUERY_HOST}/ (Thanos Query UI)"
-echo "MinIO console — http://minio-console.localhost/ (minioadmin / minioadmin)"
+echo "SeaweedFS filer UI — http://seaweedfs.localhost/buckets/thanos/ (block dirs appear here)"
 echo "Next: Grafana (http://grafana.localhost/) -> Explore -> Thanos Query datasource"
