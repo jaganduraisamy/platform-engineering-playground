@@ -76,7 +76,7 @@ kubectl -n observability exec deploy/vmalert -- wget -qO- \
   "http://vmselect.observability.svc.cluster.local:8481/select/0/prometheus/api/v1/query?query=traces_span_metrics_calls_total"
 
 # vmalert's recording + alerting rules
-kubectl -n observability exec deploy/vmalert -- wget -qO- "http://localhost:8880/api/v1/rules"
+kubectl -n observability exec deploy/vmalert -- wget -qO- "http://127.0.0.1:8880/api/v1/rules"
 
 kubectl -n observability logs deploy/prometheus -c prometheus --tail=50 | grep -i remote_write
 ```
