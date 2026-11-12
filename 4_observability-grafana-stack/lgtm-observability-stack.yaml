@@ -169,6 +169,14 @@ data:
       external_labels:
         cluster: home-lab
         replica: A
+    # VictoriaMetrics (12_victoria-metrics/): ships every scraped sample to
+    # vminsert in addition to Prometheus's own local TSDB and the Thanos
+    # Sidecar. Harmless if VM isn't deployed yet: Prometheus just logs
+    # failed-send retries against a DNS name that doesn't resolve.
+    remote_write:
+      - url: http://vminsert.observability.svc.cluster.local:8480/insert/0/prometheus/api/v1/write
+        queue_config:
+          max_samples_per_send: 1000
     scrape_configs:
       - job_name: prometheus
         static_configs:
@@ -432,6 +440,10 @@ data:
         type: prometheus
         access: proxy
         url: http://thanos-query.observability.svc.cluster.local:10902
+      - name: VictoriaMetrics
+        type: prometheus
+        access: proxy
+        url: http://vmselect.observability.svc.cluster.local:8481/select/0/prometheus
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -6,7 +6,7 @@ Full study roadmap (what's covered vs. planned): [docs/platform-engineering-road
 
 ## Tools covered, by folder
 
-Everything runs on one Kind cluster, numbered in the order I built them. Steps 10 and 11 only need steps 1, 3, and 4 — skip step 9 if GitOps isn't what you're after.
+Everything runs on one Kind cluster, numbered in the order I built them. Steps 10 and 11 only need steps 1, 3, and 4 — skip step 9 if GitOps isn't what you're after. Step 12 also needs steps 2 and 5 (voting app + OTel auto-instrumentation as its span-metrics traffic source); steps 11 and 12 are alternative long-term-storage paths.
 
 | Step | Tool / Pattern | Folder | Deploy | Uninstall |
 | :--- | :--- | :--- | :--- | :--- |
@@ -21,6 +21,7 @@ Everything runs on one Kind cluster, numbered in the order I built them. Steps 1
 | **9** | ArgoCD + Image Updater — GitOps, promotion gates | [9_gitops-argocd/](9_gitops-argocd/) | `./install-argocd.sh` + `./install-image-updater.sh` | `./uninstall-argocd.sh` + `./uninstall-image-updater.sh` |
 | **10** | OpenCost — Kubernetes cost allocation | [10_opencost-cost-analysis/](10_opencost-cost-analysis/) | `./install-opencost.sh` | `./uninstall-opencost.sh` |
 | **11** | Thanos + SeaweedFS — Prometheus long-term storage, global query | [11_thanos/](11_thanos/) | `./deploy-thanos.sh` | `./uninstall-thanos.sh` |
+| **12** | VictoriaMetrics — alternative long-term storage (cluster mode, one pod per component), remote_write from step 4 | [12_victoria-metrics/](12_victoria-metrics/) | `./deploy-victoriametrics.sh` | `./uninstall-victoriametrics.sh` |
 
 Not a lab yet, but on deck — RBAC/policy/secrets, Elasticsearch, Backstage, Terraform: see the roadmap doc above.
 
